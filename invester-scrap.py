@@ -1,10 +1,12 @@
 import streamlit as st
 from datetime import datetime, timedelta
 
-# Language selection
-language = st.selectbox("Select Language / زبان منتخب کریں", ["English", "اردو"])
+# Sidebar configuration for language and breakdown toggle
+st.sidebar.title("Settings")
+language = st.sidebar.selectbox("Select Language / زبان منتخب کریں", ["English", "اردو"])
+show_breakdown = st.sidebar.checkbox("Show monthly profit breakdown" if language == "English" else "ماہانہ منافع کی تفصیل دکھائیں", value=False)
 
-# Set the title and description based on the language
+# Main title and description based on language
 if language == "English":
     st.title("Scrap-Invest-Cross-Profit Calculator")
     st.write("Calculate your monthly compounded profit and view a detailed breakdown, if desired.")
@@ -16,32 +18,21 @@ else:
 if language == "English":
     st.header("Investment Details")
     investment = st.number_input("Enter your total investment amount:", min_value=0.0, step=1.0)
-    investment_time = st.text_input("Investment start date (optional, format: YYYY-MM-DD):")
+    investment_date = st.date_input("Select your investment start date (optional):", value=None)
+    calculation_date = st.date_input("Select profit calculation date (optional):", value=None)
     st.subheader("Duration")
     months = st.number_input("Enter the number of months:", min_value=1, step=1)
     profit_rate = st.number_input("Enter monthly profit rate (default is 3%):", min_value=0.0, value=3.0) / 100
 else:
     st.header("سرمایہ کاری کی تفصیلات")
     investment = st.number_input("اپنی کل سرمایہ کاری کی رقم درج کریں:", min_value=0.0, step=1.0)
-    investment_time = st.text_input("سرمایہ کاری کی تاریخ (اختیاری، فارمیٹ: YYYY-MM-DD):")
+    investment_date = st.date_input("سرمایہ کاری کی تاریخ کا انتخاب کریں (اختیاری):", value=None)
+    calculation_date = st.date_input("منافع کی حساب کتاب کی تاریخ کا انتخاب کریں (اختیاری):", value=None)
     st.subheader("مدت")
     months = st.number_input("مہینوں کی تعداد درج کریں:", min_value=1, step=1)
     profit_rate = st.number_input("ماہانہ منافع کی شرح درج کریں (پہلے سے طے شدہ 3% ہے):", min_value=0.0, value=3.0) / 100
 
-# Processing the investment details
-if investment_time:
-    try:
-        investment_date = datetime.strptime(investment_time, "%Y-%m-%d")
-    except ValueError:
-        if language == "English":
-            st.warning("Please enter a valid date format (YYYY-MM-DD).")
-        else:
-            st.warning("براہ کرم درست تاریخ کا فارمیٹ درج کریں (YYYY-MM-DD)")
-        investment_date = None
-else:
-    investment_date = None
-
-# Calculate compounded profit
+# Calculate monthly compounded profit
 current_amount = investment
 monthly_profits = []
 total_profit = 0
@@ -52,7 +43,7 @@ for month in range(1, months + 1):
     monthly_profits.append((month, monthly_profit, current_amount))
     total_profit += monthly_profit
 
-# Displaying results
+# Display total profit and amount
 if language == "English":
     st.header("Results")
     st.write(f"Total profit after {months} months: **{total_profit:.2f}**")
@@ -62,15 +53,13 @@ else:
     st.write(f"{months} مہینوں کے بعد کل منافع: **{total_profit:.2f}**")
     st.write(f"{months} مہینوں کے بعد کل رقم: **{current_amount:.2f}**")
 
-# Optional breakdown
-show_breakdown = st.checkbox("Show monthly profit breakdown" if language == "English" else "ماہانہ منافع کی تفصیل دکھائیں")
-
+# Display optional monthly breakdown
 if show_breakdown:
     if language == "English":
         st.subheader("Monthly Breakdown")
     else:
         st.subheader("ماہانہ تفصیل")
-    
+
     breakdown_data = []
     for month, profit, amount in monthly_profits:
         month_info = {
@@ -83,14 +72,18 @@ if show_breakdown:
             month_info["Date" if language == "English" else "تاریخ"] = month_date.strftime("%Y-%m-%d")
         breakdown_data.append(month_info)
     
-    # Display breakdown as a table
-    st.write(breakdown_data)
+    # Display breakdown as a formatted table
+    if language == "English":
+        st.table(breakdown_data)
+    else:
+        st.table(breakdown_data)
 else:
     if language == "English":
         st.write("Monthly breakdown hidden.")
     else:
         st.write("ماہانہ تفصیل چھپی ہوئی ہے۔")
 
+# Thank you message
 if language == "English":
     st.write("Thank you for using the Scrap-Invest-Cross-Profit Calculator!")
 else:
