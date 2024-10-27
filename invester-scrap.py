@@ -1,44 +1,70 @@
 import streamlit as st
 from datetime import datetime, timedelta
 
-# Title and Introduction
+# Set the title and description of the app
 st.title("Scrap-Invest-Cross-Profit Calculator")
-st.subheader("Calculate your monthly compounded profit over a specified period!")
+st.write("Calculate your monthly compounded profit and view a detailed breakdown, if desired.")
 
-# User Input
-investment = st.number_input("Enter your total investment (in your currency):", min_value=0.0, value=1000.0)
-profit_rate = st.number_input("Enter the monthly profit rate (default is 3%):", min_value=0.0, value=0.03) / 100
+# Input fields for user information
+st.header("Investment Details")
 
-# Optional time-based inputs
-st.write("**Optional Time Specifications**")
-start_date = st.date_input("Investment start date (optional)", value=datetime.today())
-end_date = st.date_input("Investment end date (optional)", value=start_date + timedelta(days=30))
+# Investment amount
+investment = st.number_input("Enter your total investment amount:", min_value=0.0, step=1.0)
 
-# Calculate duration in months if both dates are provided, else ask for the number of months
-if end_date > start_date:
-    num_months = (end_date.year - start_date.year) * 12 + end_date.month - start_date.month
+# Time period information (optional)
+investment_time = st.text_input("Investment start date (optional, format: YYYY-MM-DD):")
+if investment_time:
+    try:
+        investment_date = datetime.strptime(investment_time, "%Y-%m-%d")
+    except ValueError:
+        st.warning("Please enter a valid date format (YYYY-MM-DD).")
+        investment_date = None
 else:
-    num_months = st.number_input("Enter the number of months for calculation:", min_value=1, value=12)
+    investment_date = None
 
-# Options for viewing details
-show_monthly_details = st.checkbox("Show profit division for each month")
+# Duration (either in months or as an end date)
+st.subheader("Duration")
+months = st.number_input("Enter the number of months:", min_value=1, step=1)
 
-# Calculate profit
-total_amount = investment
-profits = []
+# Profit rate (with default 3% but customizable)
+profit_rate = st.number_input("Enter monthly profit rate (default is 3%):", min_value=0.0, value=3.0) / 100
 
-for month in range(1, num_months + 1):
-    monthly_profit = total_amount * profit_rate
-    total_amount += monthly_profit
-    profits.append((month, monthly_profit, total_amount))
+# Calculate the monthly compounded profit
+current_amount = investment
+monthly_profits = []
+total_profit = 0
+
+for month in range(1, months + 1):
+    monthly_profit = current_amount * profit_rate
+    current_amount += monthly_profit
+    monthly_profits.append((month, monthly_profit, current_amount))
+    total_profit += monthly_profit
 
 # Display results
-st.write("## Results")
-if show_monthly_details:
-    st.write("### Monthly Profit Division")
-    for month, monthly_profit, current_total in profits:
-        st.write(f"Month {month}: Profit = {monthly_profit:.2f}, Total Amount = {current_total:.2f}")
+st.header("Results")
+st.write(f"Total profit after {months} months: **{total_profit:.2f}**")
+st.write(f"Total amount after {months} months: **{current_amount:.2f}**")
+
+# Show detailed monthly breakdown
+show_breakdown = st.checkbox("Show monthly profit breakdown")
+
+if show_breakdown:
+    st.subheader("Monthly Breakdown")
+    breakdown_data = []
+    for month, profit, amount in monthly_profits:
+        month_info = {
+            "Month": month,
+            "Monthly Profit": f"{profit:.2f}",
+            "Total Amount": f"{amount:.2f}"
+        }
+        if investment_date:
+            month_date = investment_date + timedelta(days=30 * (month - 1))
+            month_info["Date"] = month_date.strftime("%Y-%m-%d")
+        breakdown_data.append(month_info)
+    
+    # Display breakdown as a table
+    st.write(breakdown_data)
 else:
-    total_profit = total_amount - investment
-    st.write(f"Total Profit after {num_months} months: {total_profit:.2f}")
-    st.write(f"Total Amount after {num_months} months: {total_amount:.2f}")
+    st.write("Monthly breakdown hidden.")
+
+st.write("Thank you for using the Scrap-Invest-Cross-Profit Calculator!")
