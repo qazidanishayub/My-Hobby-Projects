@@ -17,32 +17,53 @@ else:
 # Input fields for user information
 if language == "English":
     st.header("Investment Details")
-    investment = st.number_input("Enter your total investment amount:", min_value=0.0, step=1.0)
-    investment_date = st.date_input("Select your investment start date (optional):", value=None)
-    calculation_date = st.date_input("Select profit calculation date (optional):", value=None)
-    
-    # Disable the months input if dates are provided
-    if not investment_date or not calculation_date:
-        months = st.number_input("Enter the number of months:", min_value=1, step=1, value=1)
-        quarters = st.number_input("Enter the number of quarters (3 months each):", min_value=0, step=1)
+    investment_type = st.selectbox("Select your investment amount type:", ["Custom Amount", "Millions"])
+    if investment_type == "Millions":
+        investment = st.number_input("Enter your total investment amount (in millions):", min_value=0.0, step=1.0) * 1_000_000
     else:
-        months = None
-        quarters = 0
+        investment = st.number_input("Enter your total investment amount:", min_value=0.0, step=1.0)
+
+    date_based_option = st.selectbox("Select investment calculation method:", ["Custom Dates", "Number of Months", "Number of Quarters"])
     
+    if date_based_option == "Custom Dates":
+        investment_date = st.date_input("Select your investment start date:", value=None)
+        calculation_date = st.date_input("Select profit calculation date:", value=None)
+        months = None  # Disable months input
+    elif date_based_option == "Number of Months":
+        investment_date = None  # Disable date input
+        calculation_date = None  # Disable date input
+        months = st.number_input("Enter the number of months:", min_value=1, step=1)
+    else:  # Number of Quarters
+        investment_date = None  # Disable date input
+        calculation_date = None  # Disable date input
+        quarters = st.number_input("Enter the number of quarters:", min_value=1, step=1)
+        months = quarters * 3  # Calculate total months from quarters
+
     profit_rate = st.number_input("Enter monthly profit rate (default is 3%):", min_value=0.0, value=3.0) / 100
+
 else:
     st.header("سرمایہ کاری کی تفصیلات")
-    investment = st.number_input("اپنی کل سرمایہ کاری کی رقم درج کریں:", min_value=0.0, step=1.0)
-    investment_date = st.date_input("سرمایہ کاری کی تاریخ کا انتخاب کریں (اختیاری):", value=None)
-    calculation_date = st.date_input("منافع کی حساب کتاب کی تاریخ کا انتخاب کریں (اختیاری):", value=None)
-
-    # Disable the months input if dates are provided
-    if not investment_date or not calculation_date:
-        months = st.number_input("مہینوں کی تعداد درج کریں:", min_value=1, step=1, value=1)
-        quarters = st.number_input("کوارٹرز کی تعداد درج کریں (ہر 3 مہینے):", min_value=0, step=1)
+    investment_type = st.selectbox("اپنی سرمایہ کاری کی رقم کی قسم منتخب کریں:", ["حسب ضرورت رقم", "ملین"])
+    if investment_type == "ملین":
+        investment = st.number_input("اپنی کل سرمایہ کاری کی رقم درج کریں (ملین میں):", min_value=0.0, step=1.0) * 1_000_000
     else:
-        months = None
-        quarters = 0
+        investment = st.number_input("اپنی کل سرمایہ کاری کی رقم درج کریں:", min_value=0.0, step=1.0)
+
+    date_based_option = st.selectbox("سرمایہ کاری کی حساب کتاب کے طریقہ کار کا انتخاب کریں:", ["حسب ضرورت تاریخیں", "مہینوں کی تعداد", "رُب کی تعداد"])
+    
+    if date_based_option == "حسب ضرورت تاریخیں":
+        investment_date = st.date_input("سرمایہ کاری کی تاریخ کا انتخاب کریں:", value=None)
+        calculation_date = st.date_input("منافع کی حساب کتاب کی تاریخ کا انتخاب کریں:", value=None)
+        months = None  # Disable months input
+    elif date_based_option == "مہینوں کی تعداد":
+        investment_date = None  # Disable date input
+        calculation_date = None  # Disable date input
+        months = st.number_input("مہینوں کی تعداد درج کریں:", min_value=1, step=1)
+    else:  # رُب کی تعداد
+        investment_date = None  # Disable date input
+        calculation_date = None  # Disable date input
+        quarters = st.number_input("رُب کی تعداد درج کریں:", min_value=1, step=1)
+        months = quarters * 3  # Calculate total months from quarters
 
     profit_rate = st.number_input("ماہانہ منافع کی شرح درج کریں (پہلے سے طے شدہ 3% ہے):", min_value=0.0, value=3.0) / 100
 
@@ -51,24 +72,16 @@ if investment_date and calculation_date:
     investment_date = datetime.combine(investment_date, datetime.min.time())
     calculation_date = datetime.combine(calculation_date, datetime.min.time())
     duration_days = (calculation_date - investment_date).days
-
     if duration_days < 0:
         st.warning("Profit calculation date must be after the investment date.")
     else:
         # Calculate profit based on days if within the same month
-        months_count = duration_days // 30
-        days_count = duration_days % 30
         monthly_profit = investment * profit_rate
         daily_profit = monthly_profit / 30
-
-        # Total profit for complete months
-        total_profit = monthly_profit * months_count + daily_profit * days_count
+        total_profit = daily_profit * duration_days
         final_amount = investment + total_profit
 else:
-    # Calculate profit based on number of months or quarters if no dates provided
-    if quarters > 0:
-        months = quarters * 3
-    
+    # Calculate profit based on number of months if no dates provided
     current_amount = investment
     total_profit = 0
     monthly_profits = []
@@ -101,22 +114,13 @@ if show_breakdown:
     breakdown_data = []
     if investment_date and calculation_date:
         # Generate breakdown based on days
-        for month in range(1, months_count + 1):
-            month_date = investment_date + timedelta(days=(month - 1) * 30)
-            month_profit = investment * profit_rate
-            final_amount += month_profit
+        for day in range(duration_days):
+            day_date = investment_date + timedelta(days=day)
+            day_profit = daily_profit
+            final_amount += day_profit
             breakdown_data.append({
-                "Month" if language == "English" else "مہینہ": month,
-                "Monthly Profit" if language == "English" else "ماہانہ منافع": f"{month_profit:.2f}",
-                "Total Amount" if language == "English" else "کل رقم": f"{final_amount:.2f}"
-            })
-        # Include remaining days profit
-        if days_count > 0:
-            remaining_profit = (investment * profit_rate) / 30 * days_count
-            final_amount += remaining_profit
-            breakdown_data.append({
-                "Month" if language == "English" else "مہینہ": f"{months_count + 1} (Remaining Days)",
-                "Monthly Profit" if language == "English" else "ماہانہ منافع": f"{remaining_profit:.2f}",
+                "Date" if language == "English" else "تاریخ": day_date.strftime("%Y-%m-%d"),
+                "Daily Profit" if language == "English" else "روزانہ منافع": f"{day_profit:.2f}",
                 "Total Amount" if language == "English" else "کل رقم": f"{final_amount:.2f}"
             })
     else:
@@ -130,7 +134,10 @@ if show_breakdown:
             breakdown_data.append(month_info)
     
     # Display breakdown as a formatted table
-    st.table(breakdown_data)
+    if language == "English":
+        st.table(breakdown_data)
+    else:
+        st.table(breakdown_data)
 
 # Thank you message
 if language == "English":
