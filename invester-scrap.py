@@ -17,9 +17,12 @@ else:
 # Input fields for user information
 if language == "English":
     st.header("Investment Details")
-    investment_type = st.selectbox("Select your investment amount type:", ["Custom Amount", "Millions"])
+    investment_type = st.selectbox("Select your investment amount type:", ["Custom Amount", "Millions", "Lacs"])
+    
     if investment_type == "Millions":
         investment = st.number_input("Enter your total investment amount (in millions):", min_value=0.0, step=1.0) * 1_000_000
+    elif investment_type == "Lacs":
+        investment = st.number_input("Enter your total investment amount (in lacs):", min_value=0.0, step=1.0) * 100_000
     else:
         investment = st.number_input("Enter your total investment amount:", min_value=0.0, step=1.0)
 
@@ -43,9 +46,12 @@ if language == "English":
 
 else:
     st.header("سرمایہ کاری کی تفصیلات")
-    investment_type = st.selectbox("اپنی سرمایہ کاری کی رقم کی قسم منتخب کریں:", ["حسب ضرورت رقم", "ملین"])
+    investment_type = st.selectbox("اپنی سرمایہ کاری کی رقم کی قسم منتخب کریں:", ["حسب ضرورت رقم", "ملین", "لاکھ"])
+    
     if investment_type == "ملین":
         investment = st.number_input("اپنی کل سرمایہ کاری کی رقم درج کریں (ملین میں):", min_value=0.0, step=1.0) * 1_000_000
+    elif investment_type == "لاکھ":
+        investment = st.number_input("اپنی کل سرمایہ کاری کی رقم درج کریں (لاکھ میں):", min_value=0.0, step=1.0) * 100_000
     else:
         investment = st.number_input("اپنی کل سرمایہ کاری کی رقم درج کریں:", min_value=0.0, step=1.0)
 
@@ -75,11 +81,22 @@ if investment_date and calculation_date:
     if duration_days < 0:
         st.warning("Profit calculation date must be after the investment date.")
     else:
-        # Calculate profit based on days if within the same month
-        monthly_profit = investment * profit_rate
-        daily_profit = monthly_profit / 30
-        total_profit = daily_profit * duration_days
-        final_amount = investment + total_profit
+        total_profit = 0
+        total_months = duration_days // 30
+        remaining_days = duration_days % 30
+
+        # Calculate profit for complete months
+        for month in range(total_months):
+            monthly_profit = investment * profit_rate
+            total_profit += monthly_profit
+            investment += monthly_profit
+
+        # Calculate profit for remaining days
+        daily_profit = (investment * profit_rate) / 30
+        remaining_profit = daily_profit * remaining_days
+        total_profit += remaining_profit
+
+        final_amount = investment + remaining_profit
 else:
     # Calculate profit based on number of months if no dates provided
     current_amount = investment
@@ -113,16 +130,23 @@ if show_breakdown:
 
     breakdown_data = []
     if investment_date and calculation_date:
-        # Generate breakdown based on days
-        for day in range(duration_days):
-            day_date = investment_date + timedelta(days=day)
-            day_profit = daily_profit
-            final_amount += day_profit
+        # Generate breakdown based on custom dates
+        for month in range(total_months):
+            month_profit = investment * profit_rate
+            investment += month_profit
             breakdown_data.append({
-                "Date" if language == "English" else "تاریخ": day_date.strftime("%Y-%m-%d"),
-                "Daily Profit" if language == "English" else "روزانہ منافع": f"{day_profit:.2f}",
-                "Total Amount" if language == "English" else "کل رقم": f"{final_amount:.2f}"
+                "Month" if language == "English" else "مہینہ": month + 1,
+                "Monthly Profit" if language == "English" else "ماہانہ منافع": f"{month_profit:.2f}",
+                "Total Amount" if language == "English" else "کل رقم": f"{investment:.2f}"
             })
+
+        # Add remaining days profit to the last month
+        remaining_days_profit = daily_profit * remaining_days
+        breakdown_data.append({
+            "Month" if language == "English" else "مہینہ": f"Remaining Days ({remaining_days})",
+            "Monthly Profit" if language == "English" else "ماہانہ منافع": f"{remaining_days_profit:.2f}",
+            "Total Amount" if language == "English" else "کل رقم": f"{investment + remaining_days_profit:.2f}"
+        })
     else:
         # Generate breakdown based on months
         for month, profit, amount in monthly_profits:
