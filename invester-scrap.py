@@ -1,50 +1,44 @@
 import streamlit as st
 from datetime import datetime, timedelta
 
-# Application title
+# Title and Introduction
 st.title("Scrap-Invest-Cross-Profit Calculator")
+st.subheader("Calculate your monthly compounded profit over a specified period!")
 
-# User inputs
-st.write("## Investment Details")
-total_investment = st.number_input("Enter your total investment:", min_value=0.0, value=1000.0)
-use_date = st.checkbox("Do you want to specify investment period with dates?")
+# User Input
+investment = st.number_input("Enter your total investment (in your currency):", min_value=0.0, value=1000.0)
+profit_rate = st.number_input("Enter the monthly profit rate (default is 3%):", min_value=0.0, value=0.03) / 100
 
-# Date input options
-if use_date:
-    start_date = st.date_input("Start Date", value=datetime.today())
-    end_date = st.date_input("End Date", value=datetime.today() + timedelta(days=30))
-    if end_date < start_date:
-        st.error("End date must be after the start date.")
-    num_months = ((end_date - start_date).days // 30)
+# Optional time-based inputs
+st.write("**Optional Time Specifications**")
+start_date = st.date_input("Investment start date (optional)", value=datetime.today())
+end_date = st.date_input("Investment end date (optional)", value=start_date + timedelta(days=30))
+
+# Calculate duration in months if both dates are provided, else ask for the number of months
+if end_date > start_date:
+    num_months = (end_date.year - start_date.year) * 12 + end_date.month - start_date.month
 else:
-    num_months = st.number_input("Number of months:", min_value=1, value=12)
+    num_months = st.number_input("Enter the number of months for calculation:", min_value=1, value=12)
 
-# Profit rate
-profit_rate = 0.03
+# Options for viewing details
+show_monthly_details = st.checkbox("Show profit division for each month")
 
-# Show detailed monthly breakdown option
-show_details = st.checkbox("Show detailed monthly profit breakdown")
+# Calculate profit
+total_amount = investment
+profits = []
 
-# Calculation logic
-def calculate_profit(initial_investment, months, rate, detailed=False):
-    current_amount = initial_investment
-    monthly_profits = []
-    for month in range(1, months + 1):
-        profit = current_amount * rate
-        current_amount += profit
-        monthly_profits.append((month, profit, current_amount))
-    total_profit = current_amount - initial_investment
-    return total_profit, monthly_profits
-
-# Perform the calculation
-total_profit, monthly_profits = calculate_profit(total_investment, num_months, profit_rate)
+for month in range(1, num_months + 1):
+    monthly_profit = total_amount * profit_rate
+    total_amount += monthly_profit
+    profits.append((month, monthly_profit, total_amount))
 
 # Display results
 st.write("## Results")
-st.write(f"**Total Profit:** {total_profit:.2f}")
-st.write(f"**Total Amount After {num_months} Month(s):** {total_investment + total_profit:.2f}")
-
-if show_details:
-    st.write("### Monthly Profit Breakdown")
-    for month, profit, amount in monthly_profits:
-        st.write(f"Month {month}: Profit = {profit:.2f}, Total Amount = {amount:.2f}")
+if show_monthly_details:
+    st.write("### Monthly Profit Division")
+    for month, monthly_profit, current_total in profits:
+        st.write(f"Month {month}: Profit = {monthly_profit:.2f}, Total Amount = {current_total:.2f}")
+else:
+    total_profit = total_amount - investment
+    st.write(f"Total Profit after {num_months} months: {total_profit:.2f}")
+    st.write(f"Total Amount after {num_months} months: {total_amount:.2f}")
