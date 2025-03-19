@@ -20,9 +20,9 @@ if language == "English":
     investment_type = st.selectbox("Select your investment amount type:", ["Millions", "Custom Amount", "Lacs"])
     
     if investment_type == "Millions":
-        investment = st.number_input("Enter your total investment amount (in millions):", min_value=0.0, step=1.0) * 1_000_000
+        investment = st.number_input("Enter your total investment amount (in millions):", min_value=0.0, value=1.0, step=1.0) * 1_000_000
     elif investment_type == "Lacs":
-        investment = st.number_input("Enter your total investment amount (in lacs):", min_value=0.0, step=1.0) * 100_000
+        investment = st.number_input("Enter your total investment amount (in lacs):", min_value=0.0, value=5.0, step=1.0) * 100_000
     else:
         investment = st.number_input("Enter your total investment amount:", min_value=0.0, step=1.0)
 
