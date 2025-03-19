@@ -17,7 +17,7 @@ else:
 # Input fields for user information
 if language == "English":
     st.header("Investment Details")
-    investment_type = st.selectbox("Select your investment amount type:", ["Custom Amount", "Millions", "Lacs"])
+    investment_type = st.selectbox("Select your investment amount type:", ["Millions", "Custom Amount", "Lacs"])
     
     if investment_type == "Millions":
         investment = st.number_input("Enter your total investment amount (in millions):", min_value=0.0, step=1.0) * 1_000_000
@@ -26,7 +26,7 @@ if language == "English":
     else:
         investment = st.number_input("Enter your total investment amount:", min_value=0.0, step=1.0)
 
-    date_based_option = st.selectbox("Select investment calculation method:", ["Custom Dates", "Number of Months", "Number of Quarters"])
+    date_based_option = st.selectbox("Select investment calculation method:", [ "Number of Months", "Custom Dates", "Number of Quarters"])
     
     if date_based_option == "Custom Dates":
         investment_date = st.date_input("Select your investment start date:", value=None)
