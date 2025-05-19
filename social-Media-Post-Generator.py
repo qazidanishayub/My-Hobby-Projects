@@ -69,7 +69,7 @@ The tone must be:
 - Conversational, yet professional
 - Optimized for readability (short paragraphs, lists, or bullets)
 
-The output should be a single LinkedIn-ready post, clean and copy-pasteable text.
+The output should be a single LinkedIn-ready post, clean and copy-pasteable text. write everything underlined and in bold format.
 """
 
         if user_idea:
