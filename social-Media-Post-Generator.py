@@ -81,14 +81,22 @@ The output should be a single LinkedIn-ready post, clean and copy-pasteable text
 
             st.markdown("### ✅ Your LinkedIn-Ready Post")
             # Show formatted output that works cleanly for LinkedIn
-            st.text_area("📝 Formatted Post:", value=final_post, height=400, label_visibility="collapsed")
-            
-            # Copy/download button for easy transfer to LinkedIn
+            st.text_area("Preview:", value=final_post, height=400)
+
+            # Create .docx with proper formatting
+            doc = Document()
+            for paragraph in final_post.split("\n\n"):
+                doc.add_paragraph(paragraph.strip())
+
+            buffer = BytesIO()
+            doc.save(buffer)
+            buffer.seek(0)
+
             st.download_button(
-                label="📋 Copy to Clipboard",
-                data=final_post,
-                file_name="linkedin_post.txt",
-                mime="text/plain"
+                label="📄 Download as DOCX",
+                data=buffer,
+                file_name="linkedin_post.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
 
 
