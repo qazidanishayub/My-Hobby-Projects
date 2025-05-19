@@ -69,7 +69,7 @@ The tone must be:
 - Conversational, yet professional
 - Optimized for readability (short paragraphs, lists, or bullets)
 
-The output should be a single LinkedIn-ready post, clean and copy-pasteable text. write everything underlined and in bold format.
+The output should be a single LinkedIn-ready post, clean and copy-pasteable text.
 """
 
         if user_idea:
@@ -80,25 +80,14 @@ The output should be a single LinkedIn-ready post, clean and copy-pasteable text
             final_post = response.text.strip()
 
             st.markdown("### ✅ Your LinkedIn-Ready Post")
-            # Show formatted output that works cleanly for LinkedIn
-            st.text_area("Preview:", value=final_post, height=400)
-
-            # Create .docx with proper formatting
-            doc = Document()
-            for paragraph in final_post.split("\n\n"):
-                doc.add_paragraph(paragraph.strip())
-
-            buffer = BytesIO()
-            doc.save(buffer)
-            buffer.seek(0)
+            st.code(final_post, language=None)
 
             st.download_button(
-                label="📄 Download as DOCX",
-                data=buffer,
-                file_name="linkedin_post.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                label="📋 Copy to Clipboard",
+                data=final_post,
+                file_name="linkedin_post.txt",
+                mime="text/plain"
             )
-
 
         except Exception as e:
             st.error(f"❌ Error generating content: {e}")
