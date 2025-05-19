@@ -6,9 +6,6 @@ import os
 st.set_page_config(page_title="AI/ML LinkedIn Post Generator", layout="centered")
 st.title("🤖 AI/ML LinkedIn Post Generator")
 
-# Input for API Key
-api_key = st.text_input("🔑 Enter your Gemini API Key", type="password")
-
 # Setup Gemini
 if api_key:
     os.environ["GOOGLE_API_KEY"] = api_key
