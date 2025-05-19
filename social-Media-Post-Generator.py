@@ -1,28 +1,27 @@
 import streamlit as st
 import google.generativeai as genai
-import os
 
-# Configure Gemini API
+# Streamlit page setup
 st.set_page_config(page_title="AI/ML LinkedIn Post Generator", layout="centered")
 st.title("🤖 AI/ML LinkedIn Post Generator")
 
-# Setup Gemini
-if api_key:
-    os.environ["GOOGLE_API_KEY"] = api_key
-    genai.configure(api_key=api_key)
+# Load Gemini API key from Streamlit Secrets
+api_key = st.secrets["gemini"]["api_key"]
 
-    model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-001")
+# Configure Gemini
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-001")
 
-    # Input for optional user guidance
-    st.markdown("### 🧠 Optional: Add Custom Insight or Topic")
-    user_idea = st.text_area("Guide the AI on what to focus on (e.g., use case, tool, or result)", height=100)
+# Optional user input
+st.markdown("### 🧠 Optional: Add Custom Insight or Topic")
+user_idea = st.text_area("Guide the AI on what to focus on (e.g., use case, tool, or result)", height=100)
 
-    # Button to generate post
-    if st.button("🚀 Generate LinkedIn Post"):
-        with st.spinner("Generating your post..."):
+# Generate button
+if st.button("🚀 Generate LinkedIn Post"):
+    with st.spinner("Generating your post..."):
 
-            # Expert-level system prompt
-            base_prompt = """
+        # Prompt setup
+        base_prompt = """
 You are a LinkedIn content strategist and writing expert focused on AI, ML, and Data Science topics. Your goal is to help a highly skilled AI/ML/SaaS engineer or thought leader consistently create powerful, professional, and engaging LinkedIn posts that:
 
 • Showcase their expertise in cutting-edge technology  
@@ -61,17 +60,14 @@ The tone must be:
 The output should be a single LinkedIn-ready post, clean and copy-pasteable text.
 """
 
-            if user_idea:
-                full_prompt = base_prompt + f"\n\nUser Input:\n{user_idea.strip()}"
-            else:
-                full_prompt = base_prompt
+        if user_idea:
+            full_prompt = base_prompt + f"\n\nUser Input:\n{user_idea.strip()}"
+        else:
+            full_prompt = base_prompt
 
-            try:
-                response = model.generate_content(full_prompt)
-                st.markdown("### ✅ Your LinkedIn Post")
-                st.text_area("Copy & Paste this:", value=response.text.strip(), height=400)
-            except Exception as e:
-                st.error(f"❌ Error generating content: {e}")
-else:
-    st.warning("Please enter your Gemini API key to start.")
-
+        try:
+            response = model.generate_content(full_prompt)
+            st.markdown("### ✅ Your LinkedIn Post")
+            st.text_area("Copy & Paste this:", value=response.text.strip(), height=400)
+        except Exception as e:
+            st.error(f"❌ Error generating content: {e}")
