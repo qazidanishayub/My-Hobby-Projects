@@ -80,14 +80,17 @@ The output should be a single LinkedIn-ready post, clean and copy-pasteable text
             final_post = response.text.strip()
 
             st.markdown("### ✅ Your LinkedIn-Ready Post")
-            st.code(final_post, language=None)
-
+            # Show formatted output that works cleanly for LinkedIn
+            st.text_area("📝 Formatted Post:", value=final_post, height=400, label_visibility="collapsed")
+            
+            # Copy/download button for easy transfer to LinkedIn
             st.download_button(
                 label="📋 Copy to Clipboard",
                 data=final_post,
                 file_name="linkedin_post.txt",
                 mime="text/plain"
             )
+
 
         except Exception as e:
             st.error(f"❌ Error generating content: {e}")
