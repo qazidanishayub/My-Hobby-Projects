@@ -1,26 +1,38 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Streamlit page setup
+# Configure page
 st.set_page_config(page_title="AI/ML LinkedIn Post Generator", layout="centered")
 st.title("🤖 AI/ML LinkedIn Post Generator")
 
-# Load Gemini API key from Streamlit Secrets
+# Get Gemini API key from Streamlit secrets
 api_key = st.secrets["gemini"]["api_key"]
-
-# Configure Gemini
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-001")
 
-# Optional user input
-st.markdown("### 🧠 Optional: Add Custom Insight or Topic")
-user_idea = st.text_area("Guide the AI on what to focus on (e.g., use case, tool, or result)", height=100)
+# Layout separator
+st.markdown("### 🔍 Select How You Want to Guide the AI")
 
-# Generate button
+# Option to guide AI or let it choose
+input_mode = st.radio(
+    "Would you like to provide a specific topic or let the AI decide?",
+    ("Let the AI choose", "I want to guide the topic"),
+    index=0
+)
+
+user_idea = ""
+if input_mode == "I want to guide the topic":
+    user_idea = st.text_area(
+        "✍️ Enter your custom idea, tool, result, or topic focus (Optional)",
+        placeholder="e.g., Using RAG with LangChain and Pinecone for real-time knowledge retrieval...",
+        height=100
+    )
+
+# Button to generate post
 if st.button("🚀 Generate LinkedIn Post"):
-    with st.spinner("Generating your post..."):
+    with st.spinner("Generating your expert-level post..."):
 
-        # Prompt setup
+        # Prompt with expert structure and AI/ML topic scope
         base_prompt = """
 You are a LinkedIn content strategist and writing expert focused on AI, ML, and Data Science topics. Your goal is to help a highly skilled AI/ML/SaaS engineer or thought leader consistently create powerful, professional, and engaging LinkedIn posts that:
 
@@ -61,13 +73,21 @@ The output should be a single LinkedIn-ready post, clean and copy-pasteable text
 """
 
         if user_idea:
-            full_prompt = base_prompt + f"\n\nUser Input:\n{user_idea.strip()}"
-        else:
-            full_prompt = base_prompt
+            base_prompt += f"\n\nUser Input:\n{user_idea.strip()}"
 
         try:
-            response = model.generate_content(full_prompt)
-            st.markdown("### ✅ Your LinkedIn Post")
-            st.text_area("Copy & Paste this:", value=response.text.strip(), height=400)
+            response = model.generate_content(base_prompt)
+            final_post = response.text.strip()
+
+            st.markdown("### ✅ Your LinkedIn-Ready Post")
+            st.code(final_post, language=None)
+
+            st.download_button(
+                label="📋 Copy to Clipboard",
+                data=final_post,
+                file_name="linkedin_post.txt",
+                mime="text/plain"
+            )
+
         except Exception as e:
             st.error(f"❌ Error generating content: {e}")
