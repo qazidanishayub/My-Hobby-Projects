@@ -3,7 +3,7 @@ import google.generativeai as genai
 import os
 
 # Set page configuration
-st.set_page_config(page_title="AI/ML LinkedIn Post Generator", layout="centered")
+st.set_page_config(page_title="AI-Based LinkedIn Post Generator", layout="centered")
 st.title("🤖 AI-Driven LinkedIn Post Generator")
 
 # Get API key from secrets
@@ -63,7 +63,7 @@ Output a clean, copy-pasteable LinkedIn post.
     return base_prompt
 
 if mode == "⚡ Quick Post":
-    st.markdown("### ⚡ Quick AI Post Generation")
+    st.markdown("### ⚡ Quick AI-Based Post Generation")
     user_idea = st.text_area("Optional: Add a focus or idea", "", height=100)
     selected_domain = st.selectbox("Choose your content domain:", domains)
     
