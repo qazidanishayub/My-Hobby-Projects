@@ -8,12 +8,32 @@ st.set_page_config(page_title="PKR SIP Return & Real-Value Calculator", layout="
 
 st.title("📈 Stock Market Return Calculator (PKR) — Nominal vs Real (Devaluation-Aware)")
 
+# =========================
+# Documentation & Defaults
+# =========================
+with st.expander("ℹ️ How the calculator works (Default Calculation Mode)"):
+    st.markdown(
+        """
+**Default Mode (if you don't change monthly customization):**
+- You invest the **same amount every month** (set in the sidebar).
+- Contributions are treated as **annuity due** by default (money goes in at the **start** of each month, then grows for the month).
+- **Nominal annual return** is converted to an **effective monthly rate**.
+- **Fees/Taxes (annual)** are converted to a monthly drag and reduce the nominal return to a **net nominal monthly rate**.
+- **Devaluation/Inflation (annual)** is converted to a monthly rate and used to compute a **real (devaluation-adjusted)** series by discounting the nominal balance.
+- **Step-up** (if any) increases your monthly contribution **once a year** on the chosen **Anchor Month** (e.g., January).
+- If you enable **Monthly Customization**, you can specify a different contribution and optional **extra lump** per calendar month.  
+  This **12-month pattern repeats** every year; step-ups (if set) still apply annually on the anchor month.
+        """
+    )
+
+# ===============
+# Sidebar Inputs
+# ===============
 with st.sidebar:
     st.header("Inputs")
 
-    # Core cashflow
-    monthly_contribution = st.number_input("Monthly contribution (PKR)", 0, 10_000_000, 100_000, step=10_000)
-
+    # Core cashflow defaults
+    base_monthly_contribution = st.number_input("Base monthly contribution (PKR)", 0, 10_000_000, 100_000, step=10_000)
     years = st.slider("Duration (years)", 1, 40, 10)
     annuity_due = st.checkbox("Contribute at the start of each month (annuity due)", value=True)
 
@@ -26,19 +46,17 @@ with st.sidebar:
     step_up_pct = st.number_input("Annual step-up in contribution (%)", 0.0, 100.0, 0.0, step=1.0)
     lump_sum = st.number_input("One-time lump-sum at start (PKR)", 0, 1_000_000_000, 0, step=50_000)
 
-    # Anchor month
-    anchor_month = st.selectbox(
-        "Anchor month for annual effects (step-up, fees/taxes, devaluation)",
-        options=[
-            "January","February","March","April","May","June",
-            "July","August","September","October","November","December"
-        ],
-        index=0
-    )
+    # Anchor month (applies to step-ups and acts as the yearly boundary)
+    months_list = [
+        "January","February","March","April","May","June",
+        "July","August","September","October","November","December"
+    ]
+    anchor_month = st.selectbox("Anchor month for annual effects", options=months_list, index=0)
 
     # Preset to match your example outputs
+    st.markdown("---")
     if st.button("Use Example Preset (₨100k/month → ~₨3.4cr in 10y; ~₨24.3cr in 20y)"):
-        st.session_state["monthly_contribution"] = 100_000
+        st.session_state["base_monthly_contribution"] = 100_000
         st.session_state["years"] = 10
         st.session_state["nominal_annual_return_pct"] = 19.85
         st.session_state["annual_devaluation_pct"] = 0.0
@@ -49,105 +67,128 @@ with st.sidebar:
         st.session_state["anchor_month"] = "January"
         st.experimental_rerun()
 
-# Allow session-state presetting to reflect in widgets
-if "monthly_contribution" in st.session_state:
-    monthly_contribution = st.session_state["monthly_contribution"]
-if "years" in st.session_state:
-    years = st.session_state["years"]
-if "nominal_annual_return_pct" in st.session_state:
-    nominal_annual_return_pct = st.session_state["nominal_annual_return_pct"]
-if "annual_devaluation_pct" in st.session_state:
-    annual_devaluation_pct = st.session_state["annual_devaluation_pct"]
-if "annual_fee_tax_drag_pct" in st.session_state:
-    annual_fee_tax_drag_pct = st.session_state["annual_fee_tax_drag_pct"]
-if "step_up_pct" in st.session_state:
-    step_up_pct = st.session_state["step_up_pct"]
-if "annuity_due" in st.session_state:
-    annuity_due = st.session_state["annuity_due"]
-if "lump_sum" in st.session_state:
-    lump_sum = st.session_state["lump_sum"]
-if "anchor_month" in st.session_state:
-    anchor_month = st.session_state["anchor_month"]
+# Reflect preset session state to live variables
+base_monthly_contribution = st.session_state.get("base_monthly_contribution", base_monthly_contribution)
+years = st.session_state.get("years", years)
+nominal_annual_return_pct = st.session_state.get("nominal_annual_return_pct", nominal_annual_return_pct)
+annual_devaluation_pct = st.session_state.get("annual_devaluation_pct", annual_devaluation_pct)
+annual_fee_tax_drag_pct = st.session_state.get("annual_fee_tax_drag_pct", annual_fee_tax_drag_pct)
+step_up_pct = st.session_state.get("step_up_pct", step_up_pct)
+annuity_due = st.session_state.get("annuity_due", annuity_due)
+lump_sum = st.session_state.get("lump_sum", lump_sum)
+anchor_month = st.session_state.get("anchor_month", anchor_month)
 
 months = years * 12
-anchor_index = ["January","February","March","April","May","June","July","August","September","October","November","December"].index(anchor_month)
+anchor_index = months_list.index(anchor_month)
 
-# Convert annual rates to effective monthly rates
+# =========================
+# Monthly Customization UI
+# =========================
+st.subheader("🗓️ Monthly Customization (Optional)")
+st.caption("Specify a different monthly contribution and/or an extra lump for each calendar month. This 12-month pattern repeats every year.")
+
+default_pattern = pd.DataFrame({
+    "Month": months_list,
+    "Contribution (PKR)": [base_monthly_contribution]*12,
+    "Extra Lump (PKR)": [0]*12
+})
+pattern_df = st.data_editor(
+    default_pattern,
+    use_container_width=True,
+    num_rows="fixed",
+    key="pattern_editor",
+    column_config={
+        "Month": st.column_config.Column(disabled=True),
+        "Contribution (PKR)": st.column_config.NumberColumn(min_value=0, step=10_000),
+        "Extra Lump (PKR)": st.column_config.NumberColumn(min_value=0, step=10_000),
+    }
+)
+use_monthly_customization = st.checkbox("Enable monthly customization pattern", value=False)
+
+# ========================
+# Rate Transform Utilities
+# ========================
 def eff_monthly_rate_from_annual(annual_pct: float) -> float:
     return (1 + annual_pct/100.0) ** (1/12) - 1
 
-# We treat fee/tax drag as reducing the gross nominal return
 gross_monthly = eff_monthly_rate_from_annual(nominal_annual_return_pct)
 drag_monthly = eff_monthly_rate_from_annual(annual_fee_tax_drag_pct)
 net_nominal_monthly = (1 + gross_monthly) / (1 + drag_monthly) - 1
-
-# Monthly devaluation (for computing REAL value series)
 deval_monthly = eff_monthly_rate_from_annual(annual_devaluation_pct)
 
-# Build month-by-month schedule
-dates = pd.date_range("2025-01-01", periods=months, freq="MS")  # Month start dates
+# =======================
+# Build Cashflow Schedule
+# =======================
+dates = pd.date_range("2025-01-01", periods=months, freq="MS")
 df = pd.DataFrame({"date": dates})
 df["month_index"] = np.arange(len(df))
 df["month_num_in_year"] = df["date"].dt.month - 1  # 0..11
 df.set_index("date", inplace=True)
 
-# Contribution schedule with annual step-ups on the anchor month
-df["contribution"] = monthly_contribution
+# Base contribution series (either flat or from pattern)
+if use_monthly_customization:
+    # Map month -> contribution and extra
+    contrib_map = dict(zip(pattern_df["Month"], pattern_df["Contribution (PKR)"]))
+    extra_map = dict(zip(pattern_df["Month"], pattern_df["Extra Lump (PKR)"]))
+    df["contribution"] = df["month_num_in_year"].map(lambda i: contrib_map[months_list[i]])
+    df["extra_lump"] = df["month_num_in_year"].map(lambda i: extra_map[months_list[i]])
+else:
+    df["contribution"] = base_monthly_contribution
+    df["extra_lump"] = 0.0
+
+# Apply annual step-ups on anchor months (cumulative)
 if step_up_pct > 0:
-    # For each anchor month after the first year, lift contribution by step_up_pct cumulatively
-    # Example: +10% each year -> contribution *= 1.1^(years_elapsed)
-    years_elapsed = (df["month_index"] // 12)
     is_anchor = (df["month_num_in_year"] == anchor_index)
-    # Build a cumulative factor that only increments on anchor-months (except at t=0)
     step_factor = np.ones(len(df))
-    inc_points = np.where(is_anchor)[0]
     cum = 1.0
     for i in range(len(df)):
-        if i in inc_points and i != 0:
+        if is_anchor.iloc[i] and i != 0:
             cum *= (1 + step_up_pct/100.0)
         step_factor[i] = cum
     df["contribution"] = df["contribution"] * step_factor
+    # Note: extra lumps are **not** step-upped (treated as fixed per calendar month pattern)
 
-# Engine: simulate monthly compounding with contributions
-def simulate_series(contribution_series, lump_sum=0, monthly_rate=0.01, annuity_due=True):
+# =====================
+# Compounding Engine
+# =====================
+def simulate_series(contribution_series, extra_series, lump_sum=0, monthly_rate=0.01, annuity_due=True):
     balance = 0.0
     balances = []
-    for i, c in enumerate(contribution_series):
+    for i, (c, x) in enumerate(zip(contribution_series, extra_series)):
         if i == 0 and lump_sum > 0:
             balance += lump_sum
+        # Apply monthly injection
         if annuity_due:
-            # Add contribution then grow
-            balance += c
+            balance += c + x
             balance *= (1 + monthly_rate)
         else:
-            # Grow then add contribution
             balance *= (1 + monthly_rate)
-            balance += c
+            balance += c + x
         balances.append(balance)
     return np.array(balances)
 
 df["nominal_balance"] = simulate_series(
     contribution_series=df["contribution"].values,
+    extra_series=df["extra_lump"].values,
     lump_sum=lump_sum,
     monthly_rate=net_nominal_monthly,
     annuity_due=annuity_due
 )
 
-# Compute real value by discounting the nominal balance with devaluation
-# Real_t = Nominal_t / (1+deval_monthly)^(t+1) (t is 0-based)
+# Compute real (devaluation-adjusted) balance
 discount_factors = (1 + deval_monthly) ** (df["month_index"] + 1)
 df["real_balance"] = df["nominal_balance"] / discount_factors
 
-# Helper: crores formatting
-def to_crore(x):
-    return x / 10_000_000  # 1 crore = 10,000,000
+# ================
+# Summary & Charts
+# ================
+def to_crore(x): return x / 10_000_000
 
-# Summary metrics
 final_nominal = df["nominal_balance"].iloc[-1]
 final_real = df["real_balance"].iloc[-1]
-total_contrib = df["contribution"].sum() + lump_sum
+total_contrib = df["contribution"].sum() + df["extra_lump"].sum() + lump_sum
 gain_nominal = final_nominal - total_contrib
-gain_real = final_real - total_contrib / ((1 + deval_monthly) ** months)
+gain_real = final_real - (total_contrib / ((1 + deval_monthly) ** months))
 
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Final Nominal Value", f"₨ {final_nominal:,.0f}", help="Before devaluation")
@@ -157,57 +198,57 @@ c4.metric("Nominal Gain", f"₨ {gain_nominal:,.0f}")
 
 st.divider()
 
-# Show quick checks for 10y and 20y (to match your example when parameters are set)
-with st.expander("Check 10-year vs 20-year outcomes"):
+st.subheader("Growth Over Time")
+plot_df = df[["nominal_balance", "real_balance"]].rename(
+    columns={"nominal_balance": "Nominal (PKR)", "real_balance": "Real (Devaluation-Adjusted PKR)"}
+)
+st.line_chart(plot_df, use_container_width=True)
+
+with st.expander("View Month-by-Month Table"):
+    show_cols = ["month_index", "contribution", "extra_lump", "nominal_balance", "real_balance"]
+    st.dataframe(
+        df[show_cols].style.format({
+            "contribution": "₨ {:,.0f}",
+            "extra_lump": "₨ {:,.0f}",
+            "nominal_balance": "₨ {:,.0f}",
+            "real_balance": "₨ {:,.0f}"
+        }),
+        use_container_width=True,
+        height=520
+    )
+
+# Cross-check expander
+st.divider()
+with st.expander("Check 10-year vs 20-year outcomes (closed-form, level contributions only)"):
     def fv_annuity_due(monthly, r_m, n):
-        """Closed-form FV for level monthly annuity due (no step-ups, no deval, no fees), for cross-checks."""
         if r_m == 0:
             return monthly * n
         return monthly * (((1 + r_m) ** n - 1) / r_m) * (1 + r_m)
 
     r_m = net_nominal_monthly
-    fv_10y = fv_annuity_due(monthly_contribution, r_m, 10 * 12)
-    fv_20y = fv_annuity_due(monthly_contribution, r_m, 20 * 12)
+    # Closed-form assumes: no monthly customization, no extra lumps, no step-ups, no devaluation/fees beyond r_m
+    fv_10y = fv_annuity_due(base_monthly_contribution, r_m, 10 * 12)
+    fv_20y = fv_annuity_due(base_monthly_contribution, r_m, 20 * 12)
 
     st.write(
         f"""
-        **Closed-form cross-check (no step-ups, no lump-sum, no devaluation):**  
+        **Closed-form cross-check (level contributions only):**  
         • 10 years: **₨ {fv_10y:,.0f}** ({to_crore(fv_10y):.2f} crore)  
         • 20 years: **₨ {fv_20y:,.0f}** ({to_crore(fv_20y):.2f} crore)
         """
     )
     st.caption(
         "Tip: With ₨100,000/month, nominal annual ~19.85%, annuity-due, no devaluation/fees, "
-        "10 years ≈ ₨3.4 crore and 20 years ≈ ₨24.3 crore (your example)."
+        "10 years ≈ ₨3.4 crore and 20 years ≈ ₨24.3 crore (matches your example)."
     )
 
-# Charts
-st.subheader("Growth Over Time")
-plot_df = df[["nominal_balance", "real_balance"]].rename(
-    columns={"nominal_balance": "Nominal (PKR)", "real_balance": "Real (Devaluation-Adjusted PKR)"}
-)
-st.line_chart(plot_df)
-
-# Table
-with st.expander("View Month-by-Month Table"):
-    show_cols = ["month_index", "contribution", "nominal_balance", "real_balance"]
-    st.dataframe(
-        df[show_cols].style.format({
-            "contribution": "₨ {:,.0f}",
-            "nominal_balance": "₨ {:,.0f}",
-            "real_balance": "₨ {:,.0f}"
-        }),
-        use_container_width=True,
-        height=500
-    )
-
-st.divider()
+# Footer notes
 st.markdown(
     """
-**Notes & How this works**
-- **Net nominal monthly return** = convert annual return to monthly, then reduce by the monthly equivalent of fees/taxes.  
-- **Real (devaluation-adjusted) value** discounts the nominal balance by monthly devaluation.  
-- **Anchor month** applies annual step-up, fee/tax drag compounding boundary, and devaluation boundary consistently in the same month each year, matching “compounded every time for this time of year selected.”  
-- Check your results with the **expander**; use the **Preset** in the sidebar to reproduce your target figures.
+---
+**Notes**
+- Monthly customization pattern repeats each year. Annual step-ups (if set) still occur on the **Anchor Month**.
+- Extra lumps in the monthly pattern are applied every time that month occurs (e.g., every December).
+- Real values discount the nominal balance by monthly devaluation.
 """
 )
