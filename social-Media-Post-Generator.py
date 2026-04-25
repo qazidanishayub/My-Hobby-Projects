@@ -155,6 +155,19 @@ st.markdown("""
         display: none; /* Hide default radio circle */
     }
 
+    /* MultiSelect */
+    div[data-testid="stMultiSelect"] > div > div {
+        background-color: #0A0A0F !important;
+        border: 1px solid #1E1E2E !important;
+        border-radius: 12px !important;
+    }
+    span[data-baseweb="tag"] {
+        background-color: rgba(108, 99, 255, 0.15) !important;
+        border: 1px solid #6C63FF !important;
+        color: #F0F0FF !important;
+        border-radius: 8px !important;
+    }
+
     /* Inputs & Textareas */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>select {
         background-color: #0A0A0F !important;
@@ -385,12 +398,16 @@ Formatting & Style Rules:
         
     return base_prompt
 
-def generate_post(prompt_text):
+def generate_post(prompt_text, temperature=0.7):
     st.session_state.last_prompt = prompt_text
+    st.session_state.last_temp = temperature
     st.session_state.is_generating = True
     with st.spinner("✦ OUR AI System is crafting your post..."):
         try:
-            response = model.generate_content(prompt_text)
+            response = model.generate_content(
+                prompt_text,
+                generation_config=genai.types.GenerationConfig(temperature=temperature)
+            )
             st.session_state.generated_post = response.text.strip()
             st.session_state.show_edit = False # Hide edit panel on new generation
             st.toast("Your post is ready! ✦")
@@ -408,12 +425,18 @@ if "Quick Post" in mode:
     st.markdown("<div style='text-align: right; color: #8888AA; font-size: 0.75rem; margin-top: -15px;'>Aim for 1-2 sentences</div>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    st.markdown("<div style='color: #F0F0FF; font-family: Space Grotesk; font-weight: 700; margin-bottom: 12px;'>Select Domain</div>", unsafe_allow_html=True)
-    selected_domain = st.radio("Domain", domains, horizontal=True, label_visibility="collapsed")
+    st.markdown("<div style='color: #F0F0FF; font-family: Space Grotesk; font-weight: 700; margin-bottom: 12px;'>Select Domains</div>", unsafe_allow_html=True)
+    selected_domains = st.multiselect("Domains", domains, default=[domains[0]], label_visibility="collapsed")
+    custom_domain = st.text_input("Or Add Custom Domain(s)", placeholder="e.g. SpaceTech, Quantum Computing...")
+    
+    st.markdown("<div style='color: #F0F0FF; font-family: Space Grotesk; font-weight: 700; margin-top: 16px; margin-bottom: 12px;'>Creativity Level</div>", unsafe_allow_html=True)
+    creativity = st.slider("Creativity", min_value=0.1, max_value=1.0, value=0.7, step=0.1, label_visibility="collapsed")
     
     if st.button("GENERATE MY POST ⚡", type="primary"):
-        prompt = build_prompt(user_idea, selected_domain)
-        generate_post(prompt)
+        final_domains = selected_domains + [d.strip() for d in custom_domain.split(",") if d.strip()]
+        domain_str = ", ".join(final_domains) if final_domains else "General Technology"
+        prompt = build_prompt(user_idea, domain_str)
+        generate_post(prompt, creativity)
 
 elif "Guided Journey" in mode:
     col1, col2 = st.columns(2, gap="large")
@@ -429,16 +452,22 @@ elif "Guided Journey" in mode:
         tones = ["💼 Professional", "🔥 Bold", "🤝 Conversational", "🎓 Thought Leader"]
         selected_tone = st.radio("Tone", tones, horizontal=True, label_visibility="collapsed")
         
-        st.markdown("<div style='color: #F0F0FF; font-size: 0.9rem; margin-top: 16px; margin-bottom: 8px;'>Domain</div>", unsafe_allow_html=True)
-        selected_domain = st.radio("Domain", domains, horizontal=True, label_visibility="collapsed", key="guided_domain")
+        st.markdown("<div style='color: #F0F0FF; font-size: 0.9rem; margin-top: 16px; margin-bottom: 8px;'>Domains</div>", unsafe_allow_html=True)
+        selected_domains = st.multiselect("Domain", domains, default=[domains[0]], label_visibility="collapsed", key="guided_domain")
+        custom_domain = st.text_input("Or Add Custom Domain(s)", placeholder="e.g. FinTech, Healthcare AI...", key="guided_custom_domain")
+        
+        st.markdown("<div style='color: #F0F0FF; font-size: 0.9rem; margin-top: 16px; margin-bottom: 8px;'>Creativity Level</div>", unsafe_allow_html=True)
+        creativity = st.slider("Creativity", min_value=0.1, max_value=1.0, value=0.7, step=0.1, label_visibility="collapsed", key="guided_creativity")
 
     st.markdown("<div style='color: #F0F0FF; font-family: Space Grotesk; font-weight: 700; margin-top: 32px; margin-bottom: 12px; font-size: 1.2rem;'>💡 Your Insights</div>", unsafe_allow_html=True)
     custom_topic = st.text_area("What do YOU know that others don't?", height=120, placeholder="Share a specific success, failure, or contrarian view...")
     
     if st.button("GENERATE MY POST ⚡", type="primary"):
+        final_domains = selected_domains + [d.strip() for d in custom_domain.split(",") if d.strip()]
+        domain_str = ", ".join(final_domains) if final_domains else "General Technology"
         context = f"Role: {role}\\nIndustry: {industry}"
-        prompt = build_prompt(context, selected_domain, custom_guidance=custom_topic, tone=selected_tone)
-        generate_post(prompt)
+        prompt = build_prompt(context, domain_str, custom_guidance=custom_topic, tone=selected_tone)
+        generate_post(prompt, creativity)
 
 # ----------------- OUTPUT SECTION -----------------
 if st.session_state.generated_post:
@@ -464,7 +493,7 @@ if st.session_state.generated_post:
     with a_col2:
         if st.button("🔄 Regenerate", use_container_width=True):
             if st.session_state.last_prompt:
-                generate_post(st.session_state.last_prompt)
+                generate_post(st.session_state.last_prompt, st.session_state.get("last_temp", 0.7))
                 st.rerun()
     with a_col3:
         if st.button("✏️ Edit & Refine", use_container_width=True):
@@ -487,7 +516,7 @@ User Request: {refine_instruction}
 
 Output ONLY the newly refined LinkedIn post. Do not include any meta-text.
 """
-            generate_post(refine_prompt)
+            generate_post(refine_prompt, st.session_state.get("last_temp", 0.7))
             st.rerun()
 
     # Engagement Prediction Metrics
