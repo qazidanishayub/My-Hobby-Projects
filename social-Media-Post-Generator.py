@@ -311,7 +311,7 @@ if "last_prompt" not in st.session_state:
 st.markdown("""
 <div class="hero-container">
     <div class="app-title"><span class="app-title-icon">✦</span> LinkedIn Post Generator</div>
-    <div class="app-subtitle">Craft posts that get noticed. Powered by Gemini AI.</div>
+    <div class="app-subtitle">Craft posts that get noticed. Powered by OUR AI.</div>
     <div class="gradient-divider"></div>
 </div>
 """, unsafe_allow_html=True)
@@ -388,7 +388,7 @@ Formatting & Style Rules:
 def generate_post(prompt_text):
     st.session_state.last_prompt = prompt_text
     st.session_state.is_generating = True
-    with st.spinner("✦ Gemini is crafting your post..."):
+    with st.spinner("✦ OUR AI System is crafting your post..."):
         try:
             response = model.generate_content(prompt_text)
             st.session_state.generated_post = response.text.strip()
@@ -511,6 +511,6 @@ else:
 # ----------------- FOOTER -----------------
 st.markdown("""
 <div class="footer">
-    Built with Gemini AI + Streamlit &nbsp;·&nbsp; <span style="color: #6C63FF;">✦</span> Made for Builders
+    Built with OUR Custom AI + Streamlit &nbsp;·&nbsp; <span style="color: #6C63FF;">✦</span> Made for Builders
 </div>
 """, unsafe_allow_html=True)
