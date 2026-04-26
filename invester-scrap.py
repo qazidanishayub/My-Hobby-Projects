@@ -121,22 +121,22 @@ st.markdown("""
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-def fmt_pkr(amount: float) -> str:
-    """Return a human-readable PKR string (Cr / Lac / plain)."""
+def fmt_USD(amount: float) -> str:
+    """Return a human-readable USD string (Cr / Lac / plain)."""
     if amount >= 10_000_000:
-        return f"PKR {amount/10_000_000:.2f} Cr"
+        return f"USD {amount/10_000_000:.2f} Cr"
     elif amount >= 100_000:
-        return f"PKR {amount/100_000:.2f} Lac"
+        return f"USD {amount/100_000:.2f} Lac"
     else:
-        return f"PKR {amount:,.0f}"
+        return f"USD {amount:,.0f}"
 
 
 def parse_investment(inv_type_en: str, inv_type_ur: str, language: str) -> float:
-    """Render the right number-input and return the PKR amount."""
+    """Render the right number-input and return the USD amount."""
     if language == "English":
         lbl_map = {"Millions": (1_000_000, "Amount (millions):", 1.0, 0.5),
                    "Lacs":     (100_000,   "Amount (lacs):",    5.0, 1.0),
-                   "Custom Amount": (1,    "Amount (PKR):",  100_000.0, 10_000.0)}
+                   "Custom Amount": (1,    "Amount (USD):",  100_000.0, 10_000.0)}
         mult, lbl, default, step = lbl_map[inv_type_en]
     else:
         lbl_map = {"ملین":      (1_000_000, "رقم (ملین میں):",   1.0, 0.5),
@@ -226,7 +226,7 @@ if EN:
     st.markdown("""
     <div class="hero">
         <h1>💰 Smart Finance Calculator</h1>
-        <p>Investment Profit &amp; Rent Projection — built for Pakistani investors</p>
+        <p>Investment Profit &amp; Rent Projection — built for World-Wide investors</p>
     </div>""", unsafe_allow_html=True)
 else:
     st.markdown("""
@@ -300,9 +300,9 @@ with tab1:
                 elif a_itype == "Lacs":
                     inv_a = st.number_input("Amount (lacs):", min_value=0.0, value=5.0, step=1.0, key="a_iamt") * 100_000
                 else:
-                    inv_a = st.number_input("Amount (PKR):", min_value=0.0, value=100_000.0, step=10_000.0, key="a_iamt")
+                    inv_a = st.number_input("Amount (USD):", min_value=0.0, value=100_000.0, step=10_000.0, key="a_iamt")
                 rate_a = st.number_input("Monthly profit rate (%):", min_value=0.0, value=3.0, step=0.1, key="a_rate") / 100
-                ded_a  = st.number_input("Monthly deduction (PKR):", min_value=0.0, step=500.0, key="a_ded")
+                ded_a  = st.number_input("Monthly deduction (USD):", min_value=0.0, step=500.0, key="a_ded")
                 meth_a = st.radio("Method:", ["Months", "Quarters"], horizontal=True, key="a_meth")
                 mo_a   = int(st.number_input("Months:" if meth_a == "Months" else "Quarters:", min_value=1, value=12, step=1, key="a_mo"))
                 if meth_a == "Quarters":
@@ -332,9 +332,9 @@ with tab1:
                 elif b_itype == "Lacs":
                     inv_b = st.number_input("Amount (lacs):", min_value=0.0, value=5.0, step=1.0, key="b_iamt") * 100_000
                 else:
-                    inv_b = st.number_input("Amount (PKR):", min_value=0.0, value=100_000.0, step=10_000.0, key="b_iamt")
+                    inv_b = st.number_input("Amount (USD):", min_value=0.0, value=100_000.0, step=10_000.0, key="b_iamt")
                 rate_b = st.number_input("Monthly profit rate (%):", min_value=0.0, value=4.0, step=0.1, key="b_rate") / 100
-                ded_b  = st.number_input("Monthly deduction (PKR):", min_value=0.0, step=500.0, key="b_ded")
+                ded_b  = st.number_input("Monthly deduction (USD):", min_value=0.0, step=500.0, key="b_ded")
                 meth_b = st.radio("Method:", ["Months", "Quarters"], horizontal=True, key="b_meth")
                 mo_b   = int(st.number_input("Months:" if meth_b == "Months" else "Quarters:", min_value=1, value=12, step=1, key="b_mo"))
                 if meth_b == "Quarters":
@@ -369,11 +369,11 @@ with tab1:
         h_b.markdown(f"#### 📈 {'Scenario B' if EN else 'منظرنامہ ب'}")
 
         for label_en, label_ur, val_a, val_b, delta_a, delta_b in [
-            ("Initial Investment", "ابتدائی سرمایہ", fmt_pkr(inv_a), fmt_pkr(inv_b), None, None),
-            ("Total Profit",       "کل منافع",        fmt_pkr(res_a["total_profit"]), fmt_pkr(res_b["total_profit"]),
+            ("Initial Investment", "ابتدائی سرمایہ", fmt_USD(inv_a), fmt_USD(inv_b), None, None),
+            ("Total Profit",       "کل منافع",        fmt_USD(res_a["total_profit"]), fmt_USD(res_b["total_profit"]),
              f"+{res_a['roi']:.1f}% ROI", f"+{res_b['roi']:.1f}% ROI"),
-            ("Final Amount",       "حتمی رقم",         fmt_pkr(res_a["current"]), fmt_pkr(res_b["current"]), None, None),
-            ("Avg Monthly Profit", "اوسط ماہانہ منافع", fmt_pkr(res_a["avg_monthly"]), fmt_pkr(res_b["avg_monthly"]), None, None),
+            ("Final Amount",       "حتمی رقم",         fmt_USD(res_a["current"]), fmt_USD(res_b["current"]), None, None),
+            ("Avg Monthly Profit", "اوسط ماہانہ منافع", fmt_USD(res_a["avg_monthly"]), fmt_USD(res_b["avg_monthly"]), None, None),
         ]:
             c_left, c_right = st.columns(2)
             c_left.metric(label_en if EN else label_ur, val_a, delta=delta_a)
@@ -383,14 +383,14 @@ with tab1:
         final_diff = res_b["current"] - res_a["current"]
         pct_diff   = (abs(final_diff) / res_a["current"] * 100) if res_a["current"] > 0 else 0
         if final_diff > 0:
-            verd_en = (f"📈 <b>Scenario B</b> yields <b>{fmt_pkr(final_diff)}</b> more "
+            verd_en = (f"📈 <b>Scenario B</b> yields <b>{fmt_USD(final_diff)}</b> more "
                        f"— a <b>{pct_diff:.1f}%</b> advantage over the projection period.")
-            verd_ur = f"📈 <b>منظرنامہ ب</b> نے <b>{fmt_pkr(final_diff)}</b> زیادہ دیے — <b>{pct_diff:.1f}%</b> کا فرق۔"
+            verd_ur = f"📈 <b>منظرنامہ ب</b> نے <b>{fmt_USD(final_diff)}</b> زیادہ دیے — <b>{pct_diff:.1f}%</b> کا فرق۔"
             box_cls = "highlight-box-green"
         elif final_diff < 0:
-            verd_en = (f"📊 <b>Scenario A</b> yields <b>{fmt_pkr(abs(final_diff))}</b> more "
+            verd_en = (f"📊 <b>Scenario A</b> yields <b>{fmt_USD(abs(final_diff))}</b> more "
                        f"— a <b>{pct_diff:.1f}%</b> advantage over the projection period.")
-            verd_ur = f"📊 <b>منظرنامہ الف</b> نے <b>{fmt_pkr(abs(final_diff))}</b> زیادہ دیے — <b>{pct_diff:.1f}%</b> کا فرق۔"
+            verd_ur = f"📊 <b>منظرنامہ الف</b> نے <b>{fmt_USD(abs(final_diff))}</b> زیادہ دیے — <b>{pct_diff:.1f}%</b> کا فرق۔"
             box_cls = "highlight-box"
         else:
             verd_en, verd_ur, box_cls = "Both scenarios yield identical results.", "دونوں یکساں نتائج۔", "highlight-box-orange"
@@ -407,20 +407,20 @@ with tab1:
                 name="Scenario A" if EN else "منظرنامہ الف",
                 fill="tozeroy", line=dict(color="#667eea", width=2.5),
                 fillcolor="rgba(102,126,234,0.10)",
-                hovertemplate="Month %{x}<br>A: PKR %{y:,.0f}<extra></extra>",
+                hovertemplate="Month %{x}<br>A: USD %{y:,.0f}<extra></extra>",
             ))
             fig_cmp.add_trace(go.Scatter(
                 x=df_b_cmp["Month"], y=df_b_cmp["Total Amount"],
                 name="Scenario B" if EN else "منظرنامہ ب",
                 fill="tozeroy", line=dict(color="#11998e", width=2.5),
                 fillcolor="rgba(17,153,142,0.10)",
-                hovertemplate="Month %{x}<br>B: PKR %{y:,.0f}<extra></extra>",
+                hovertemplate="Month %{x}<br>B: USD %{y:,.0f}<extra></extra>",
             ))
             fig_cmp.update_layout(
                 title=dict(text="📈 Scenario Comparison — Total Amount Growth" if EN
                            else "📈 منظرنامے موازنہ — کل رقم کی نمو", x=0.02),
                 xaxis_title="Month" if EN else "مہینہ",
-                yaxis_title="Total Amount (PKR)" if EN else "کل رقم (روپے)",
+                yaxis_title="Total Amount (USD)" if EN else "کل رقم (روپے)",
                 hovermode="x unified",
                 plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -432,20 +432,20 @@ with tab1:
         wa_txt = (
             f"📊 Investment Comparison (Smart Finance Calculator)\n{_SEP}\n"
             f"Scenario A\n"
-            f"💰 Investment: {fmt_pkr(inv_a)}  |  Rate: {rate_a*100:.1f}%/mo  |  {mo_a} months\n"
-            f"📈 Profit: {fmt_pkr(res_a['total_profit'])}  |  Final: {fmt_pkr(res_a['current'])}\n\n"
+            f"💰 Investment: {fmt_USD(inv_a)}  |  Rate: {rate_a*100:.1f}%/mo  |  {mo_a} months\n"
+            f"📈 Profit: {fmt_USD(res_a['total_profit'])}  |  Final: {fmt_USD(res_a['current'])}\n\n"
             f"Scenario B\n"
-            f"💰 Investment: {fmt_pkr(inv_b)}  |  Rate: {rate_b*100:.1f}%/mo  |  {mo_b} months\n"
-            f"📈 Profit: {fmt_pkr(res_b['total_profit'])}  |  Final: {fmt_pkr(res_b['current'])}\n"
+            f"💰 Investment: {fmt_USD(inv_b)}  |  Rate: {rate_b*100:.1f}%/mo  |  {mo_b} months\n"
+            f"📈 Profit: {fmt_USD(res_b['total_profit'])}  |  Final: {fmt_USD(res_b['current'])}\n"
             f"{_SEP}\n"
-            f"{'Scenario B wins' if final_diff > 0 else 'Scenario A wins'} by {fmt_pkr(abs(final_diff))}\n"
+            f"{'Scenario B wins' if final_diff > 0 else 'Scenario A wins'} by {fmt_USD(abs(final_diff))}\n"
             f"Calculated with Smart Finance Calculator"
         ) if EN else (
             f"📊 سرمایہ کاری موازنہ (سمارٹ فنانس کیلکولیٹر)\n{_SEP}\n"
-            f"منظرنامہ الف: {fmt_pkr(inv_a)} | حتمی رقم: {fmt_pkr(res_a['current'])}\n"
-            f"منظرنامہ ب: {fmt_pkr(inv_b)} | حتمی رقم: {fmt_pkr(res_b['current'])}\n"
+            f"منظرنامہ الف: {fmt_USD(inv_a)} | حتمی رقم: {fmt_USD(res_a['current'])}\n"
+            f"منظرنامہ ب: {fmt_USD(inv_b)} | حتمی رقم: {fmt_USD(res_b['current'])}\n"
             f"{_SEP}\n"
-            f"فرق: {fmt_pkr(abs(final_diff))}"
+            f"فرق: {fmt_USD(abs(final_diff))}"
         )
         wa_share(wa_txt, "Share Comparison on WhatsApp 📲" if EN else "واٹس ایپ پر موازنہ شیئر کریں 📲")
 
@@ -469,7 +469,7 @@ with tab1:
             investment = parse_investment(inv_type_en, inv_type_ur, language)
             if EN:
                 profit_rate   = st.number_input("Monthly profit rate (%):", min_value=0.0, value=3.0, step=0.1) / 100
-                deduction_amt = st.number_input("Monthly deduction from profit (PKR):", min_value=0.0, step=500.0)
+                deduction_amt = st.number_input("Monthly deduction from profit (USD):", min_value=0.0, step=500.0)
             else:
                 profit_rate   = st.number_input("ماہانہ منافع کی شرح (%):", min_value=0.0, value=3.0, step=0.1) / 100
                 deduction_amt = st.number_input("ماہانہ کٹوتی (روپے):", min_value=0.0, step=500.0)
@@ -517,16 +517,16 @@ with tab1:
             unsafe_allow_html=True,
         )
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Initial Investment"   if EN else "ابتدائی سرمایہ",   fmt_pkr(investment))
-        m2.metric("Total Profit"         if EN else "کل منافع",          fmt_pkr(total_profit), delta=f"+{roi:.1f}% ROI")
-        m3.metric("Final Amount"         if EN else "حتمی رقم",          fmt_pkr(current))
-        m4.metric("Avg Monthly Profit"   if EN else "اوسط ماہانہ منافع", fmt_pkr(avg_monthly))
+        m1.metric("Initial Investment"   if EN else "ابتدائی سرمایہ",   fmt_USD(investment))
+        m2.metric("Total Profit"         if EN else "کل منافع",          fmt_USD(total_profit), delta=f"+{roi:.1f}% ROI")
+        m3.metric("Final Amount"         if EN else "حتمی رقم",          fmt_USD(current))
+        m4.metric("Avg Monthly Profit"   if EN else "اوسط ماہانہ منافع", fmt_USD(avg_monthly))
 
         # Deduction summary caption
         if apply_zakat or apply_tax:
             parts = []
-            if apply_zakat: parts.append(f"Zakat {fmt_pkr(total_zakat)}" if EN else f"زکوٰۃ {fmt_pkr(total_zakat)}")
-            if apply_tax:   parts.append(f"Tax {fmt_pkr(total_tax_d)}" if EN else f"ٹیکس {fmt_pkr(total_tax_d)}")
+            if apply_zakat: parts.append(f"Zakat {fmt_USD(total_zakat)}" if EN else f"زکوٰۃ {fmt_USD(total_zakat)}")
+            if apply_tax:   parts.append(f"Tax {fmt_USD(total_tax_d)}" if EN else f"ٹیکس {fmt_USD(total_tax_d)}")
             eff_roi = ((current - investment) / investment * 100) if investment > 0 else 0
             st.caption(("Deductions applied — " if EN else "لاگو کٹوتیاں — ")
                        + "  |  ".join(parts)
@@ -540,8 +540,8 @@ with tab1:
                      else f"**مدت:** {months} مہینے ({months/12:.1f} سال)")
             si2.info(f"**Rate:** {profit_rate*100:.2f}%/mo  →  {profit_rate*1200:.1f}%/yr" if EN
                      else f"**شرح:** {profit_rate*100:.2f}% ماہانہ → {profit_rate*1200:.1f}% سالانہ")
-            si3.info(f"**Monthly Deduction:** {fmt_pkr(deduction_amt)}" if EN
-                     else f"**ماہانہ کٹوتی:** {fmt_pkr(deduction_amt)}")
+            si3.info(f"**Monthly Deduction:** {fmt_USD(deduction_amt)}" if EN
+                     else f"**ماہانہ کٹوتی:** {fmt_USD(deduction_amt)}")
 
             growth_factor = (current / investment) if investment > 0 else 1
             eff_roi       = ((current - investment) / investment * 100) if investment > 0 else 0
@@ -551,13 +551,13 @@ with tab1:
                               if EN else f" زکوٰۃ اور ٹیکس کے بعد مؤثر واپسی: <b>{eff_roi:.1f}%</b>۔")
             st.markdown(
                 f'<div class="highlight-box">💡 '
-                + (f"Your <b>PKR {investment/100000:.1f} Lac</b> investment grows to "
-                   f"<b>{fmt_pkr(current)}</b> in <b>{months} months</b> — "
+                + (f"Your <b>USD {investment/100000:.1f} Lac</b> investment grows to "
+                   f"<b>{fmt_USD(current)}</b> in <b>{months} months</b> — "
                    f"a <b>{growth_factor:.2f}×</b> return at {profit_rate*100:.1f}%/mo compounded."
                    + extra_note
                    if EN else
-                   f"آپ کی <b>{fmt_pkr(investment)}</b> سرمایہ کاری <b>{months} مہینوں</b> میں "
-                   f"<b>{fmt_pkr(current)}</b> ہو جاتی ہے — <b>{growth_factor:.2f}×</b> واپسی۔"
+                   f"آپ کی <b>{fmt_USD(investment)}</b> سرمایہ کاری <b>{months} مہینوں</b> میں "
+                   f"<b>{fmt_USD(current)}</b> ہو جاتی ہے — <b>{growth_factor:.2f}×</b> واپسی۔"
                    + extra_note)
                 + "</div>",
                 unsafe_allow_html=True,
@@ -573,19 +573,19 @@ with tab1:
                 name="Total Amount" if EN else "کل رقم",
                 fill="tozeroy", line=dict(color="#667eea", width=2.5),
                 fillcolor="rgba(102,126,234,0.12)",
-                hovertemplate="Month %{x}<br>Total: PKR %{y:,.0f}<extra></extra>",
+                hovertemplate="Month %{x}<br>Total: USD %{y:,.0f}<extra></extra>",
             ))
             fig.add_trace(go.Bar(
                 x=df["Month"], y=df["Monthly Profit"],
                 name="Monthly Profit" if EN else "ماہانہ منافع",
                 marker_color="rgba(118,75,162,0.65)", yaxis="y2",
-                hovertemplate="Month %{x}<br>Profit: PKR %{y:,.0f}<extra></extra>",
+                hovertemplate="Month %{x}<br>Profit: USD %{y:,.0f}<extra></extra>",
             ))
             fig.update_layout(
                 title=dict(text="📈 Investment Growth Over Time" if EN else "📈 وقت کے ساتھ سرمایہ کاری کی نمو", x=0.02),
                 xaxis_title="Month" if EN else "مہینہ",
-                yaxis_title="Total Amount (PKR)" if EN else "کل رقم (روپے)",
-                yaxis2=dict(title="Monthly Profit (PKR)", overlaying="y", side="right", showgrid=False),
+                yaxis_title="Total Amount (USD)" if EN else "کل رقم (روپے)",
+                yaxis2=dict(title="Monthly Profit (USD)", overlaying="y", side="right", showgrid=False),
                 hovermode="x unified", plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
                 height=420, margin=dict(t=60, b=40),
@@ -603,7 +603,7 @@ with tab1:
             # Format numeric columns
             for c_name in ["Monthly Profit", "Total Amount", "Tax Deducted", "Zakat Deducted"]:
                 if c_name in df_disp.columns:
-                    df_disp[c_name] = df_disp[c_name].map(lambda x: f"PKR {x:,.0f}")
+                    df_disp[c_name] = df_disp[c_name].map(lambda x: f"USD {x:,.0f}")
             # Drop unused deduction columns
             if not apply_tax   and "Tax Deducted"   in df_disp.columns: df_disp.drop(columns=["Tax Deducted"],   inplace=True)
             if not apply_zakat and "Zakat Deducted" in df_disp.columns: df_disp.drop(columns=["Zakat Deducted"], inplace=True)
@@ -624,20 +624,20 @@ with tab1:
         # ── Enhancement 3: WhatsApp share (single mode) ───────────────────────
         eff_roi_wa = ((current - investment) / investment * 100) if investment > 0 else 0
         ded_note   = ""
-        if apply_zakat: ded_note += f"\n🕌 Zakat Deducted: {fmt_pkr(total_zakat)}"
-        if apply_tax:   ded_note += f"\n🏛 Tax Deducted: {fmt_pkr(total_tax_d)}"
+        if apply_zakat: ded_note += f"\n🕌 Zakat Deducted: {fmt_USD(total_zakat)}"
+        if apply_tax:   ded_note += f"\n🏛 Tax Deducted: {fmt_USD(total_tax_d)}"
         wa_inv = (
             f"📊 Investment Summary (Smart Finance Calculator)\n{_SEP}\n"
-            f"💰 Initial Investment: {fmt_pkr(investment)}\n"
-            f"📈 Total Profit: {fmt_pkr(total_profit)} ({roi:.1f}% ROI)\n"
-            f"🏦 Final Amount: {fmt_pkr(current)}\n"
+            f"💰 Initial Investment: {fmt_USD(investment)}\n"
+            f"📈 Total Profit: {fmt_USD(total_profit)} ({roi:.1f}% ROI)\n"
+            f"🏦 Final Amount: {fmt_USD(current)}\n"
             f"⏱ Duration: {months} months  |  Rate: {profit_rate*100:.1f}%/mo"
             + ded_note + f"\n{_SEP}\nCalculated with Smart Finance Calculator"
         ) if EN else (
             f"📊 سرمایہ کاری خلاصہ (سمارٹ فنانس کیلکولیٹر)\n{_SEP}\n"
-            f"💰 ابتدائی سرمایہ: {fmt_pkr(investment)}\n"
-            f"📈 کل منافع: {fmt_pkr(total_profit)} ({roi:.1f}% ROI)\n"
-            f"🏦 حتمی رقم: {fmt_pkr(current)}\n"
+            f"💰 ابتدائی سرمایہ: {fmt_USD(investment)}\n"
+            f"📈 کل منافع: {fmt_USD(total_profit)} ({roi:.1f}% ROI)\n"
+            f"🏦 حتمی رقم: {fmt_USD(current)}\n"
             f"⏱ مدت: {months} مہینے  |  شرح: {profit_rate*100:.1f}%/ماہ"
             + ded_note + f"\n{_SEP}\nسمارٹ فنانس کیلکولیٹر"
         )
@@ -668,7 +668,7 @@ with tab2:
             elif rent_unit == "Lacs":
                 initial_rent = st.number_input("Monthly rent (lacs):", min_value=0.0, value=1.0, step=0.5) * 100_000
             else:
-                initial_rent = st.number_input("Monthly rent (PKR):", min_value=0.0, value=50_000.0, step=5_000.0)
+                initial_rent = st.number_input("Monthly rent (USD):", min_value=0.0, value=50_000.0, step=5_000.0)
 
             years = int(st.number_input("Projection period (years):", min_value=1, max_value=30, value=5, step=1))
         else:
@@ -685,7 +685,7 @@ with tab2:
     with r2:
         if EN:
             annual_increase = st.number_input("Annual rent increase (%):", min_value=0.0, value=10.0, step=1.0)
-            monthly_expense = st.number_input("Monthly expenses / maintenance (PKR):", min_value=0.0, value=0.0, step=1_000.0)
+            monthly_expense = st.number_input("Monthly expenses / maintenance (USD):", min_value=0.0, value=0.0, step=1_000.0)
             vacancy_rate    = st.number_input("Annual vacancy rate (%):", min_value=0.0, max_value=100.0, value=5.0, step=1.0)
             tax_rate        = st.number_input("Annual property / income tax rate (%):", min_value=0.0, max_value=100.0, value=0.0, step=0.5)
         else:
@@ -737,11 +737,11 @@ with tab2:
         unsafe_allow_html=True,
     )
     rm1, rm2, rm3, rm4 = st.columns(4)
-    rm1.metric("Starting Rent"      if EN else "ابتدائی کرایہ",     fmt_pkr(initial_rent) + "/mo")
-    rm2.metric("Final Year Rent"    if EN else "آخری سال کا کرایہ",  fmt_pkr(final_monthly_rent) + "/mo",
+    rm1.metric("Starting Rent"      if EN else "ابتدائی کرایہ",     fmt_USD(initial_rent) + "/mo")
+    rm2.metric("Final Year Rent"    if EN else "آخری سال کا کرایہ",  fmt_USD(final_monthly_rent) + "/mo",
                delta=f"+{((final_monthly_rent / initial_rent) - 1)*100:.0f}% total" if initial_rent > 0 else None)
-    rm3.metric("Total Gross Income" if EN else "کل مجموعی آمدنی",   fmt_pkr(total_gross))
-    rm4.metric("Total Net Income"   if EN else "کل خالص آمدنی",      fmt_pkr(total_net))
+    rm3.metric("Total Gross Income" if EN else "کل مجموعی آمدنی",   fmt_USD(total_gross))
+    rm4.metric("Total Net Income"   if EN else "کل خالص آمدنی",      fmt_USD(total_net))
 
     # ── Insight box ───────────────────────────────────────────────────────────
     if show_summary and initial_rent > 0:
@@ -750,10 +750,10 @@ with tab2:
         st.markdown(
             f'<div class="highlight-box-green">🏠 '
             + (f"At <b>{annual_increase:.0f}%/yr</b> increase, your rent doubles in ≈ <b>{doubles_in} years</b> (Rule of 70). "
-               f"Over <b>{years} years</b>, cumulative losses from vacancy &amp; expenses total <b>{fmt_pkr(total_vacancy_loss + total_expenses + total_tax)}</b>."
+               f"Over <b>{years} years</b>, cumulative losses from vacancy &amp; expenses total <b>{fmt_USD(total_vacancy_loss + total_expenses + total_tax)}</b>."
                if EN else
                f"<b>{annual_increase:.0f}% سالانہ</b> اضافے سے آپ کا کرایہ ≈ <b>{doubles_in} سالوں</b> میں دوگنا ہوگا۔ "
-               f"<b>{years} سالوں</b> میں خالی مدت اور اخراجات کا کل نقصان <b>{fmt_pkr(total_vacancy_loss + total_expenses + total_tax)}</b>۔")
+               f"<b>{years} سالوں</b> میں خالی مدت اور اخراجات کا کل نقصان <b>{fmt_USD(total_vacancy_loss + total_expenses + total_tax)}</b>۔")
             + "</div>",
             unsafe_allow_html=True,
         )
@@ -772,26 +772,26 @@ with tab2:
             x=df_r[yr_col], y=df_r[gross_col],
             name="Gross Annual Income" if EN else "مجموعی سالانہ آمدنی",
             marker_color="rgba(17,153,142,0.72)",
-            hovertemplate="Year %{x}<br>Gross: PKR %{y:,.0f}<extra></extra>",
+            hovertemplate="Year %{x}<br>Gross: USD %{y:,.0f}<extra></extra>",
         ))
         fig2.add_trace(go.Bar(
             x=df_r[yr_col], y=df_r[net_col],
             name="Net Annual Income" if EN else "خالص سالانہ آمدنی",
             marker_color="rgba(56,239,125,0.75)",
-            hovertemplate="Year %{x}<br>Net: PKR %{y:,.0f}<extra></extra>",
+            hovertemplate="Year %{x}<br>Net: USD %{y:,.0f}<extra></extra>",
         ))
         fig2.add_trace(go.Scatter(
             x=df_r[yr_col], y=df_r[rent_col],
             name="Monthly Rent" if EN else "ماہانہ کرایہ",
             line=dict(color="#ff6b6b", width=2.5, dash="dot"),
             yaxis="y2",
-            hovertemplate="Year %{x}<br>Rent/mo: PKR %{y:,.0f}<extra></extra>",
+            hovertemplate="Year %{x}<br>Rent/mo: USD %{y:,.0f}<extra></extra>",
         ))
         fig2.update_layout(
             title=dict(text="🏠 Rent Growth Projection" if EN else "🏠 کرایہ ترقی پروجیکشن", x=0.02),
             xaxis=dict(title="Year" if EN else "سال", dtick=1),
-            yaxis_title="Annual Income (PKR)"   if EN else "سالانہ آمدنی (روپے)",
-            yaxis2=dict(title="Monthly Rent (PKR)" if EN else "ماہانہ کرایہ (روپے)", overlaying="y", side="right", showgrid=False),
+            yaxis_title="Annual Income (USD)"   if EN else "سالانہ آمدنی (روپے)",
+            yaxis2=dict(title="Monthly Rent (USD)" if EN else "ماہانہ کرایہ (روپے)", overlaying="y", side="right", showgrid=False),
             barmode="group",
             hovermode="x unified",
             plot_bgcolor="rgba(0,0,0,0)",
@@ -810,7 +810,7 @@ with tab2:
     )
     df_r_disp = pd.DataFrame(rent_rows).copy()
     for col in list(df_r_disp.columns)[1:]:
-        df_r_disp[col] = df_r_disp[col].map(lambda x: f"PKR {x:,.0f}")
+        df_r_disp[col] = df_r_disp[col].map(lambda x: f"USD {x:,.0f}")
     st.dataframe(df_r_disp, use_container_width=True, hide_index=True)
 
     st.download_button(
@@ -821,17 +821,17 @@ with tab2:
     )
     wa_rent = (
         f"🏠 Rent Projection (Smart Finance Calculator)\n{_SEP}\n"
-        f"💰 Starting Rent: {fmt_pkr(initial_rent)}/mo\n"
+        f"💰 Starting Rent: {fmt_USD(initial_rent)}/mo\n"
         f"📈 Annual Increase: {annual_increase:.0f}%  |  Period: {years} years\n"
-        f"🏦 Final Year Rent: {fmt_pkr(final_monthly_rent)}/mo\n"
-        f"📊 Total Gross: {fmt_pkr(total_gross)}  |  Total Net: {fmt_pkr(total_net)}\n"
+        f"🏦 Final Year Rent: {fmt_USD(final_monthly_rent)}/mo\n"
+        f"📊 Total Gross: {fmt_USD(total_gross)}  |  Total Net: {fmt_USD(total_net)}\n"
         f"{_SEP}\nCalculated with Smart Finance Calculator"
     ) if EN else (
         f"🏠 کرایہ پروجیکشن (سمارٹ فنانس کیلکولیٹر)\n{_SEP}\n"
-        f"💰 ابتدائی کرایہ: {fmt_pkr(initial_rent)}/ماہ\n"
+        f"💰 ابتدائی کرایہ: {fmt_USD(initial_rent)}/ماہ\n"
         f"📈 سالانہ اضافہ: {annual_increase:.0f}%  |  مدت: {years} سال\n"
-        f"🏦 آخری سال کرایہ: {fmt_pkr(final_monthly_rent)}/ماہ\n"
-        f"📊 کل مجموعی: {fmt_pkr(total_gross)}  |  کل خالص: {fmt_pkr(total_net)}\n"
+        f"🏦 آخری سال کرایہ: {fmt_USD(final_monthly_rent)}/ماہ\n"
+        f"📊 کل مجموعی: {fmt_USD(total_gross)}  |  کل خالص: {fmt_USD(total_net)}\n"
         f"{_SEP}\nسمارٹ فنانس کیلکولیٹر"
     )
     wa_share(wa_rent, "Share on WhatsApp 📲" if EN else "واٹس ایپ پر شیئر کریں 📲")
@@ -861,7 +861,7 @@ with tab3:
             elif bc_unit == "Lacs":
                 bc_contribution = st.number_input("Monthly contribution per member (lacs):", min_value=0.0, value=0.5, step=0.1, key="bc_c") * 100_000
             else:
-                bc_contribution = st.number_input("Monthly contribution per member (PKR):", min_value=0.0, value=10_000.0, step=1_000.0, key="bc_c")
+                bc_contribution = st.number_input("Monthly contribution per member (USD):", min_value=0.0, value=10_000.0, step=1_000.0, key="bc_c")
         else:
             bc_members = int(st.number_input("اراکین کی تعداد (N):", min_value=2, max_value=100, value=10, step=1, key="bc_members"))
             bc_unit = st.selectbox("حصہ داری کی رقم کی قسم:", ["کسٹم رقم", "ہزار", "لاکھ"], key="bc_unit")
@@ -934,10 +934,10 @@ with tab3:
         unsafe_allow_html=True,
     )
     bcm1, bcm2, bcm3, bcm4 = st.columns(4)
-    bcm1.metric("Total Pot (per round)" if EN else "کل پاٹ (فی دور)",     fmt_pkr(bc_total_pot))
-    bcm2.metric("Total You Pay In"      if EN else "آپ کی کل ادائیگی",    fmt_pkr(bc_total_paid))
+    bcm1.metric("Total Pot (per round)" if EN else "کل پاٹ (فی دور)",     fmt_USD(bc_total_pot))
+    bcm2.metric("Total You Pay In"      if EN else "آپ کی کل ادائیگی",    fmt_USD(bc_total_paid))
 
-    adv_label = fmt_pkr(abs(bc_advantage))
+    adv_label = fmt_USD(abs(bc_advantage))
     bcm3.metric(
         "BC vs Investing" if EN else "کمیٹی بمقابلہ سرمایہ کاری",
         (f"+{adv_label}" if bc_advantage >= 0 else f"-{adv_label}"),
@@ -956,16 +956,16 @@ with tab3:
         if bc_advantage >= 0:
             box_class = "highlight-box-green"
             msg_en = (
-                f"Drawing at position <b>{bc_D}</b> means you receive <b>{fmt_pkr(bc_total_pot)}</b> "
+                f"Drawing at position <b>{bc_D}</b> means you receive <b>{fmt_USD(bc_total_pot)}</b> "
                 f"in month {bc_D} and can invest it for {bc_remaining} more months. "
-                f"At {bc_comp_rate*100:.1f}%/mo your pot grows to <b>{fmt_pkr(bc_fv_final)}</b> "
-                f"vs investing {fmt_pkr(bc_c)}/mo which yields <b>{fmt_pkr(invest_fv)}</b>. "
-                f"<b>Committee beats investing by {fmt_pkr(bc_advantage)}.</b>"
+                f"At {bc_comp_rate*100:.1f}%/mo your pot grows to <b>{fmt_USD(bc_fv_final)}</b> "
+                f"vs investing {fmt_USD(bc_c)}/mo which yields <b>{fmt_USD(invest_fv)}</b>. "
+                f"<b>Committee beats investing by {fmt_USD(bc_advantage)}.</b>"
             )
             msg_ur = (
-                f"پوزیشن <b>{bc_D}</b> پر قرعہ اندازی سے آپ کو مہینہ {bc_D} میں <b>{fmt_pkr(bc_total_pot)}</b> ملتے ہیں "
+                f"پوزیشن <b>{bc_D}</b> پر قرعہ اندازی سے آپ کو مہینہ {bc_D} میں <b>{fmt_USD(bc_total_pot)}</b> ملتے ہیں "
                 f"جو {bc_remaining} مہینے مزید بڑھتے ہیں۔ "
-                f"<b>کمیٹی، سرمایہ کاری سے {fmt_pkr(bc_advantage)} بہتر ہے۔</b>"
+                f"<b>کمیٹی، سرمایہ کاری سے {fmt_USD(bc_advantage)} بہتر ہے۔</b>"
             )
         else:
             box_class = "highlight-box-orange"
@@ -973,14 +973,14 @@ with tab3:
             msg_en = (
                 f"Drawing at position <b>{bc_D}</b> (month {bc_D} of {bc_N}) leaves only "
                 f"{bc_remaining} months for your pot to compound. "
-                f"At {bc_comp_rate*100:.1f}%/mo, pot reaches <b>{fmt_pkr(bc_fv_final)}</b> "
-                f"vs investing {fmt_pkr(bc_c)}/mo giving <b>{fmt_pkr(invest_fv)}</b>. "
-                f"<b>Investing beats this BC position by {fmt_pkr(deficit)}.</b>"
+                f"At {bc_comp_rate*100:.1f}%/mo, pot reaches <b>{fmt_USD(bc_fv_final)}</b> "
+                f"vs investing {fmt_USD(bc_c)}/mo giving <b>{fmt_USD(invest_fv)}</b>. "
+                f"<b>Investing beats this BC position by {fmt_USD(deficit)}.</b>"
             )
             msg_ur = (
                 f"پوزیشن <b>{bc_D}</b> پر صرف {bc_remaining} مہینے بچتے ہیں۔ "
-                f"پاٹ بڑھ کر <b>{fmt_pkr(bc_fv_final)}</b> ہوگا — لیکن ماہانہ سرمایہ کاری <b>{fmt_pkr(invest_fv)}</b> دیتی ہے۔ "
-                f"<b>سرمایہ کاری {fmt_pkr(deficit)} بہتر ہے۔</b>"
+                f"پاٹ بڑھ کر <b>{fmt_USD(bc_fv_final)}</b> ہوگا — لیکن ماہانہ سرمایہ کاری <b>{fmt_USD(invest_fv)}</b> دیتی ہے۔ "
+                f"<b>سرمایہ کاری {fmt_USD(deficit)} بہتر ہے۔</b>"
             )
 
         st.markdown(
@@ -1006,14 +1006,14 @@ with tab3:
             x=df_bc[mo_col_bc], y=df_bc[net_col_bc],
             name="Net Position"    if EN else "خالص پوزیشن",
             marker_color=bar_colors,
-            hovertemplate="Month %{x}<br>Net: PKR %{y:,.0f}<extra></extra>",
+            hovertemplate="Month %{x}<br>Net: USD %{y:,.0f}<extra></extra>",
         ))
         fig_bc.add_trace(go.Scatter(
             x=df_bc[mo_col_bc], y=df_bc[cum_col_bc],
             name="Cumulative Paid" if EN else "کل ادا کردہ",
             line=dict(color="#f7971e", width=2.5, dash="dot"),
             yaxis="y2",
-            hovertemplate="Month %{x}<br>Paid: PKR %{y:,.0f}<extra></extra>",
+            hovertemplate="Month %{x}<br>Paid: USD %{y:,.0f}<extra></extra>",
         ))
         # Mark draw month with a vertical line
         fig_bc.add_shape(
@@ -1028,8 +1028,8 @@ with tab3:
         fig_bc.update_layout(
             title=dict(text="🤝 Committee Cash Flow — Net Position Per Month" if EN else "🤝 کمیٹی کیش فلو — ماہانہ خالص پوزیشن", x=0.02),
             xaxis=dict(title="Month" if EN else "مہینہ", dtick=max(1, bc_N // 10)),
-            yaxis=dict(title="Net Position (PKR)" if EN else "خالص پوزیشن (روپے)", zeroline=True, zerolinecolor="#ccc", zerolinewidth=1.5),
-            yaxis2=dict(title="Cumulative Paid (PKR)" if EN else "کل ادا کردہ (روپے)", overlaying="y", side="right", showgrid=False),
+            yaxis=dict(title="Net Position (USD)" if EN else "خالص پوزیشن (روپے)", zeroline=True, zerolinecolor="#ccc", zerolinewidth=1.5),
+            yaxis2=dict(title="Cumulative Paid (USD)" if EN else "کل ادا کردہ (روپے)", overlaying="y", side="right", showgrid=False),
             hovermode="x unified",
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
@@ -1048,7 +1048,7 @@ with tab3:
         )
         df_bc_disp = pd.DataFrame(bc_rows).copy()
         for col in list(df_bc_disp.columns)[1:]:
-            df_bc_disp[col] = df_bc_disp[col].map(lambda x: f"PKR {x:,.0f}")
+            df_bc_disp[col] = df_bc_disp[col].map(lambda x: f"USD {x:,.0f}")
         st.dataframe(df_bc_disp, use_container_width=True, hide_index=True)
 
     st.download_button(
@@ -1061,18 +1061,18 @@ with tab3:
     bc_verdict = ("BC wins" if bc_advantage >= 0 else "Investing wins") if EN else ("کمیٹی بہتر" if bc_advantage >= 0 else "سرمایہ کاری بہتر")
     wa_bc = (
         f"🤝 Committee (BC) Result (Smart Finance Calculator)\n{_SEP}\n"
-        f"👥 Members: {bc_N}  |  Monthly Contribution: {fmt_pkr(bc_c)}\n"
+        f"👥 Members: {bc_N}  |  Monthly Contribution: {fmt_USD(bc_c)}\n"
         f"🎯 Your Draw Position: {bc_D} of {bc_N}\n"
-        f"💰 Total Pot: {fmt_pkr(bc_total_pot)}\n"
+        f"💰 Total Pot: {fmt_USD(bc_total_pot)}\n"
         f"📊 BC vs Investing at {bc_comp_rate*100:.1f}%/mo: "
-        f"{'+'  if bc_advantage >= 0 else ''}{fmt_pkr(bc_advantage)} ({bc_verdict})\n"
+        f"{'+'  if bc_advantage >= 0 else ''}{fmt_USD(bc_advantage)} ({bc_verdict})\n"
         f"{_SEP}\nCalculated with Smart Finance Calculator"
     ) if EN else (
         f"🤝 کمیٹی نتیجہ (سمارٹ فنانس کیلکولیٹر)\n{_SEP}\n"
-        f"👥 اراکین: {bc_N}  |  ماہانہ حصہ: {fmt_pkr(bc_c)}\n"
+        f"👥 اراکین: {bc_N}  |  ماہانہ حصہ: {fmt_USD(bc_c)}\n"
         f"🎯 آپ کی پوزیشن: {bc_D} از {bc_N}\n"
-        f"💰 کل پاٹ: {fmt_pkr(bc_total_pot)}\n"
-        f"📊 کمیٹی بمقابلہ سرمایہ کاری: {fmt_pkr(bc_advantage)} ({bc_verdict})\n"
+        f"💰 کل پاٹ: {fmt_USD(bc_total_pot)}\n"
+        f"📊 کمیٹی بمقابلہ سرمایہ کاری: {fmt_USD(bc_advantage)} ({bc_verdict})\n"
         f"{_SEP}\nسمارٹ فنانس کیلکولیٹر"
     )
     wa_share(wa_bc, "Share on WhatsApp 📲" if EN else "واٹس ایپ پر شیئر کریں 📲")
@@ -1101,7 +1101,7 @@ with tab4:
             elif loan_type == "Lacs":
                 loan_principal = st.number_input("Loan amount (lacs):", min_value=0.0, value=50.0, step=5.0, key="loan_p") * 100_000
             else:
-                loan_principal = st.number_input("Loan amount (PKR):", min_value=0.0, value=500_000.0, step=50_000.0, key="loan_p")
+                loan_principal = st.number_input("Loan amount (USD):", min_value=0.0, value=500_000.0, step=50_000.0, key="loan_p")
 
             loan_rate_annual = st.number_input("Annual interest rate (%):", min_value=0.0, value=18.0, step=0.5, key="loan_rate")
             loan_years       = int(st.number_input("Loan tenure (years):", min_value=1, max_value=30, value=5, step=1, key="loan_years"))
@@ -1119,7 +1119,7 @@ with tab4:
 
     with loan_c2:
         if EN:
-            extra_payment = st.number_input("Extra monthly payment (PKR, optional):", min_value=0.0, value=0.0, step=1_000.0, key="loan_extra")
+            extra_payment = st.number_input("Extra monthly payment (USD, optional):", min_value=0.0, value=0.0, step=1_000.0, key="loan_extra")
             st.caption("Adding extra principal payments each month reduces your tenure and total interest paid.")
         else:
             extra_payment = st.number_input("اضافی ماہانہ ادائیگی (روپے، اختیاری):", min_value=0.0, value=0.0, step=1_000.0, key="loan_extra")
@@ -1183,9 +1183,9 @@ with tab4:
         unsafe_allow_html=True,
     )
     em1, em2, em3, em4 = st.columns(4)
-    em1.metric("Monthly EMI"          if EN else "ماہانہ قسط",         fmt_pkr(emi))
-    em2.metric("Total Amount Paid"    if EN else "کل ادا کردہ رقم",    fmt_pkr(total_paid_actual))
-    em3.metric("Total Interest"       if EN else "کل سود",              fmt_pkr(total_interest_actual))
+    em1.metric("Monthly EMI"          if EN else "ماہانہ قسط",         fmt_USD(emi))
+    em2.metric("Total Amount Paid"    if EN else "کل ادا کردہ رقم",    fmt_USD(total_paid_actual))
+    em3.metric("Total Interest"       if EN else "کل سود",              fmt_USD(total_interest_actual))
     em4.metric("Interest % of Principal" if EN else "اصل کا سود %",    f"{interest_pct:.1f}%")
 
     # Extra-payment savings cards
@@ -1199,7 +1199,7 @@ with tab4:
         )
         es2.metric(
             "Interest Saved" if EN else "بچایا گیا سود",
-            fmt_pkr(interest_saved),
+            fmt_USD(interest_saved),
             delta=f"vs standard {loan_n}-mo schedule" if EN else f"معیاری {loan_n} مہینوں سے موازنہ",
         )
 
@@ -1209,25 +1209,25 @@ with tab4:
         per_100 = (total_interest_actual / loan_principal * 100) if loan_principal > 0 else 0
         if extra_payment > 0 and months_saved > 0:
             box_en = (
-                f"For every <b>PKR 100</b> borrowed you pay <b>PKR {per_100:.0f}</b> in interest over {actual_months} months. "
-                f"Your extra <b>{fmt_pkr(extra_payment)}/mo</b> saves <b>{fmt_pkr(interest_saved)}</b> in interest "
+                f"For every <b>USD 100</b> borrowed you pay <b>USD {per_100:.0f}</b> in interest over {actual_months} months. "
+                f"Your extra <b>{fmt_USD(extra_payment)}/mo</b> saves <b>{fmt_USD(interest_saved)}</b> in interest "
                 f"and pays off the loan <b>{months_saved} months early</b>."
             )
             box_ur = (
-                f"قرض لی گئی ہر <b>PKR 100</b> پر آپ <b>PKR {per_100:.0f}</b> سود ادا کرتے ہیں۔ "
-                f"اضافی <b>{fmt_pkr(extra_payment)}/ماہ</b> سے <b>{fmt_pkr(interest_saved)}</b> سود بچتا ہے "
+                f"قرض لی گئی ہر <b>USD 100</b> پر آپ <b>USD {per_100:.0f}</b> سود ادا کرتے ہیں۔ "
+                f"اضافی <b>{fmt_USD(extra_payment)}/ماہ</b> سے <b>{fmt_USD(interest_saved)}</b> سود بچتا ہے "
                 f"اور قرض <b>{months_saved} مہینے جلدی</b> ختم ہوتا ہے۔"
             )
         else:
             box_en = (
-                f"For every <b>PKR 100</b> borrowed you pay <b>PKR {per_100:.0f}</b> in interest "
+                f"For every <b>USD 100</b> borrowed you pay <b>USD {per_100:.0f}</b> in interest "
                 f"over <b>{loan_n} months</b>. "
-                f"Total cost of this loan: <b>{fmt_pkr(total_paid_actual)}</b>. "
+                f"Total cost of this loan: <b>{fmt_USD(total_paid_actual)}</b>. "
                 f"Add an extra monthly payment above to see how fast you can pay it off."
             )
             box_ur = (
-                f"قرض لی گئی ہر <b>PKR 100</b> پر آپ <b>PKR {per_100:.0f}</b> سود ادا کرتے ہیں — "
-                f"<b>{loan_n} مہینوں</b> میں کل <b>{fmt_pkr(total_paid_actual)}</b>۔ "
+                f"قرض لی گئی ہر <b>USD 100</b> پر آپ <b>USD {per_100:.0f}</b> سود ادا کرتے ہیں — "
+                f"<b>{loan_n} مہینوں</b> میں کل <b>{fmt_USD(total_paid_actual)}</b>۔ "
                 f"جلد ادائیگی کے اثرات دیکھنے کے لیے اضافی ماہانہ رقم درج کریں۔"
             )
         st.markdown(
@@ -1249,26 +1249,26 @@ with tab4:
             x=df_emi[mo_col_e], y=df_emi[prin_col_e],
             name="Principal" if EN else "اصل رقم",
             marker_color="rgba(102,126,234,0.75)",
-            hovertemplate="Month %{x}<br>Principal: PKR %{y:,.0f}<extra></extra>",
+            hovertemplate="Month %{x}<br>Principal: USD %{y:,.0f}<extra></extra>",
         ))
         fig_emi.add_trace(go.Bar(
             x=df_emi[mo_col_e], y=df_emi[int_col_e],
             name="Interest" if EN else "سود",
             marker_color="rgba(203,45,62,0.65)",
-            hovertemplate="Month %{x}<br>Interest: PKR %{y:,.0f}<extra></extra>",
+            hovertemplate="Month %{x}<br>Interest: USD %{y:,.0f}<extra></extra>",
         ))
         fig_emi.add_trace(go.Scatter(
             x=df_emi[mo_col_e], y=df_emi[bal_col_e],
             name="Remaining Balance" if EN else "باقی رقم",
             line=dict(color="#ffd200", width=2.5),
             yaxis="y2",
-            hovertemplate="Month %{x}<br>Balance: PKR %{y:,.0f}<extra></extra>",
+            hovertemplate="Month %{x}<br>Balance: USD %{y:,.0f}<extra></extra>",
         ))
         fig_emi.update_layout(
             title=dict(text="🏦 Loan Amortisation — Principal vs Interest" if EN else "🏦 قرض کی ادائیگی — اصل بمقابلہ سود", x=0.02),
             xaxis_title="Month" if EN else "مہینہ",
-            yaxis_title="Monthly Breakdown (PKR)" if EN else "ماہانہ تفصیل (روپے)",
-            yaxis2=dict(title="Remaining Balance (PKR)" if EN else "باقی رقم (روپے)", overlaying="y", side="right", showgrid=False),
+            yaxis_title="Monthly Breakdown (USD)" if EN else "ماہانہ تفصیل (روپے)",
+            yaxis2=dict(title="Remaining Balance (USD)" if EN else "باقی رقم (روپے)", overlaying="y", side="right", showgrid=False),
             barmode="stack",
             hovermode="x unified",
             plot_bgcolor="rgba(0,0,0,0)",
@@ -1288,7 +1288,7 @@ with tab4:
         )
         df_emi_disp = pd.DataFrame(emi_rows).copy()
         for col in list(df_emi_disp.columns)[1:]:
-            df_emi_disp[col] = df_emi_disp[col].map(lambda x: f"PKR {x:,.0f}")
+            df_emi_disp[col] = df_emi_disp[col].map(lambda x: f"USD {x:,.0f}")
         st.dataframe(df_emi_disp, use_container_width=True, hide_index=True)
 
     st.download_button(
@@ -1298,22 +1298,22 @@ with tab4:
         mime="text/csv",
         key="emi_dl",
     )
-    extra_line = (f"\n💡 Extra payment {fmt_pkr(extra_payment)}/mo saves {fmt_pkr(interest_saved)} — paid off {months_saved} months early"
+    extra_line = (f"\n💡 Extra payment {fmt_USD(extra_payment)}/mo saves {fmt_USD(interest_saved)} — paid off {months_saved} months early"
                   if extra_payment > 0 and months_saved > 0 else "")
     wa_emi = (
         f"🏦 Loan / EMI Summary (Smart Finance Calculator)\n{_SEP}\n"
-        f"💰 Loan Amount: {fmt_pkr(loan_principal)}\n"
-        f"📅 Monthly EMI: {fmt_pkr(emi)}\n"
+        f"💰 Loan Amount: {fmt_USD(loan_principal)}\n"
+        f"📅 Monthly EMI: {fmt_USD(emi)}\n"
         f"⏱ Tenure: {actual_months} months  |  Rate: {loan_rate_annual:.1f}%/yr\n"
-        f"📈 Total Interest: {fmt_pkr(total_interest_actual)}"
+        f"📈 Total Interest: {fmt_USD(total_interest_actual)}"
         + extra_line
         + f"\n{_SEP}\nCalculated with Smart Finance Calculator"
     ) if EN else (
         f"🏦 قرض / قسط خلاصہ (سمارٹ فنانس کیلکولیٹر)\n{_SEP}\n"
-        f"💰 قرض: {fmt_pkr(loan_principal)}\n"
-        f"📅 ماہانہ قسط: {fmt_pkr(emi)}\n"
+        f"💰 قرض: {fmt_USD(loan_principal)}\n"
+        f"📅 ماہانہ قسط: {fmt_USD(emi)}\n"
         f"⏱ مدت: {actual_months} مہینے  |  شرح: {loan_rate_annual:.1f}%/سال\n"
-        f"📈 کل سود: {fmt_pkr(total_interest_actual)}"
+        f"📈 کل سود: {fmt_USD(total_interest_actual)}"
         + extra_line
         + f"\n{_SEP}\nسمارٹ فنانس کیلکولیٹر"
     )
