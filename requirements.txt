@@ -3,4 +3,4 @@ google-generativeai
 dotenv
 plotly
 yfinance
-twilio.rest
+twilio
