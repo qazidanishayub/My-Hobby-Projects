@@ -122,13 +122,13 @@ st.markdown("""
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def fmt_USD(amount: float) -> str:
-    """Return a human-readable USD string (Cr / Lac / plain)."""
+    """Return a human-readable Rs string (Cr / Lac / plain)."""
     if amount >= 10_000_000:
-        return f"USD {amount/10_000_000:.2f} Cr"
+        return f"Rs {amount/10_000_000:.2f} Cr"
     elif amount >= 100_000:
-        return f"USD {amount/100_000:.2f} Lac"
+        return f"Rs {amount/100_000:.2f} Lac"
     else:
-        return f"USD {amount:,.0f}"
+        return f"Rs {amount:,.0f}"
 
 
 def parse_investment(inv_type_en: str, inv_type_ur: str, language: str) -> float:
