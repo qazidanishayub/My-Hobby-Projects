@@ -121,15 +121,17 @@ st.markdown("""
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+# def fmt_USD(amount: float) -> str:
+#     """Return a human-readable Rs string (Cr / Lac / plain)."""
+#     if amount >= 10_000_000:
+#         return f"Rs {amount/10_000_000:.2f} Cr"
+#     elif amount >= 100_000:
+#         return f"Rs {amount/100_000:.2f} Lac"
+#     else:
+#         return f"Rs {amount:.2f}"
 def fmt_USD(amount: float) -> str:
-    """Return a human-readable Rs string (Cr / Lac / plain)."""
-    if amount >= 10_000_000:
-        return f"Rs {amount}"# /10_000_000:.6f} Cr"
-    elif amount >= 100_000:
-        return f"Rs {amount}"# /100_000:.6f} Lac"
-    else:
-        return f"Rs {amount}"# :.6f}"
-
+    """Return a human-readable Rs string with proper commas (e.g. Rs 1,000,000.00)."""
+    return f"Rs {amount:,.2f}"
 
 def parse_investment(inv_type_en: str, inv_type_ur: str, language: str) -> float:
     """Render the right number-input and return the USD amount."""
